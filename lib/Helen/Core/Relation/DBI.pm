@@ -19,6 +19,7 @@ use warnings;
 package Helen::Core::Relation::DBI;
 use Carp::Assert;
 use DBI;
+use Devel::Confess;
 
 sub new {
   my($class, $data_source, $table_name) = @_;
@@ -44,39 +45,38 @@ sub receive {
 
   $sth->execute || die;
 
-  my $columns = $other->{arguments};
+  my $columns = [@{$other->{arguments}}, @{$other->{results}}];
 
   if (!scalar($sth->fetchrow_array)) {
     $sth = $dbh->prepare("create table ".$self->{name}." (".join(", ", map "$_ varchar", @{$columns}).")");
     $sth->execute() || die;
   }
 
-  $sth = $dbh->prepare('select '.$other->{primary_key}.' from '.$self->{name});
+  $sth = $dbh->prepare('select '.join(", ", @{$other->{arguments}}).' from '.$self->{name});
 
   $sth->execute() || die;
 
-  my $current = $sth->fetchall_hashref($other->{primary_key});
+  my $current = $sth->fetchall_hashref($other->{arguments});
 
-  my $delete_sth = $dbh->prepare('delete from '.$self->{name}.' where '.$other->{primary_key}.' = ?');
+  my $delete_sth = $dbh->prepare('delete from '.$self->{name}.' where '.join(" and ", map { "$_ = ?" } @{$other->{arguments}}));
 
-  my $update_sth = $dbh->prepare('update '.$self->{name}.' set '.join(", ", map "$_ = ?", @{$columns}[1..$#{$columns}]).' where '.$other->{primary_key}.' = ?');
+  my $update_sth = $dbh->prepare('update '.$self->{name}.' set '.join(", ", map "$_ = ?", @{$other->{results}}).' where '.join(" and ", map { "$_ = ?" } @{$other->{arguments}}));
 
   my $insert_sth = $dbh->prepare('insert into '.$self->{name}.' ('.join(", ", @{$columns}).') values ('.join(", ", map "?", @{$columns}).')');
 
   my %extension = %{$other->{extension}};
   
   map {
-      if (defined($current->{$_})) {
-          my @values = @{$extension{$_}};
-          my $name = shift @values;
-          push @values, $name; $update_sth->execute(@values) || die;
-          delete $extension{$name};
-      } else {
-          $delete_sth->execute($_) || die;
-      } } keys %extension;
+    if (defined($current->{$_})) {
+      my $key = $_;
+      $update_sth->execute(map { $extension{$key}{$_} } (@{$other->{results}}, @{$other->{arguments}})) || die;
+      delete $extension{$key};
+    } else {
+      $delete_sth->execute($_) || die;
+    } } keys %extension;
+  
 
-
-  map { $insert_sth->execute(@{$extension{$_}}) || die } keys %extension;
+  map { my $key = $_; $insert_sth->execute(map { $extension{$key}{$_} } @{$columns}) || die } keys %extension;
 
   $sth->execute() || die;
 }

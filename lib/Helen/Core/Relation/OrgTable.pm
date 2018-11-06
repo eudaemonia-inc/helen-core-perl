@@ -20,20 +20,22 @@ use TryCatch;
 
 package Helen::Core::Relation::OrgTable;
 use Carp::Assert qw(:DEBUG);
+use Data::Dumper;
+use Devel::Confess;
 
 our $org = new Org::Parser;
 
 sub new {
-  my($class, $file_name, $table_name, $key_name) = @_;
+  my($class, $file_name, $table_name, $arguments) = @_;
   assert(defined($class));
   assert(defined($file_name));
   assert(defined($table_name));
-  assert(defined($key_name));
+  assert($arguments);
 
   my $doc = $org->parse_file($file_name);
 
-  my(@arguments, %extension);
-  my %argument_positions;
+  my($results, %extension);
+  my %positions;
 
   foreach my $table ($doc->find('Org::Element::Table')) {
     next unless $_ = $table->parent;
@@ -45,18 +47,25 @@ sub new {
       chomp $row;
       my @tuple = split /\|/, $row;
       shift @tuple;
-      if (!@arguments) {
-	@arguments = @tuple;
-	map { $argument_positions{$arguments[$_]} = $_ } (0..$#arguments);
-	assert(defined($argument_positions{$key_name}));
+      if (!$results) {
+	assert($#$arguments == 0);
+	assert($arguments->[0] eq (shift @tuple));
+	$results = [ @tuple ];
+	map { assert(defined($_)); $positions{$arguments->[$_]} = $_ } (0..$#$arguments);
+	map { $positions{$results->[$#$arguments + $_]} = $#$arguments + $_ + 1} (0..$#$results);
 	next;
       }
-      @{$extension{@tuple[$argument_positions{$key_name}]}} = @tuple[0..$#arguments];
+      my @tmp = map {
+      	$tuple[$positions{(@$arguments, @$results)[$_]}]
+      } (0..$#tuple);
+      foreach my $index (0..$#tmp) {
+	$extension{$tuple[$positions{$arguments->[0]}]}{(@$arguments, @$results)[$index]} = $tmp[$index];
+      }
     }
   }
   my $self = bless {
-		    arguments => \@arguments,
-		    primary_key => $key_name,
+		    arguments => $arguments,
+		    results => $results,
 		    extension => \%extension
 		   }, $class;
   return $self;
