@@ -24,7 +24,31 @@ sub new {
   assert(defined($file_name));
   assert(defined($arguments));
   assert(defined($results));
-  chomp
-  my(@fields) = split /\|/;
-  my %extension{@{$arguments}, @{$results}} = @fields;
+  open(FILE, '<', $file_name) || die;
+  my %extension;
+  my %positions;
+  
+  assert($#$arguments >= 0);
+  assert($#$results >= 0);
+
+  map { $positions{$arguments->[$_]} = $_ } (0..$#$arguments);
+  map { $positions{$results->[$#$arguments + $_]} = $#$arguments + $_ + 1} (0..$#$results);
+  
+  while (<FILE>) {
+    chomp;
+    my(@fields) = split /\|/;
+    my %line;
+    @line{@{$arguments}, @{$results}} = @fields;
+    $extension{join("/", @fields[0..$#$arguments])} = \%line;
+  }
+  close(FILE);
+
+  my $self = bless {
+		    arguments => $arguments,
+		    results => $results,
+		    extension => \%extension
+		   }, $class;
+  return $self;
+}
+  
 1;
