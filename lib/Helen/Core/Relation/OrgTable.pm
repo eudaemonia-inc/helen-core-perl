@@ -22,6 +22,7 @@ package Helen::Core::Relation::OrgTable;
 use Carp::Assert qw(:DEBUG);
 use Data::Dumper;
 use Devel::Confess;
+use parent 'Helen::Core::Relation';
 
 our $org = new Org::Parser;
 

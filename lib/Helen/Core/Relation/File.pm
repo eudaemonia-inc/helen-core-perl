@@ -17,6 +17,8 @@ use Devel::Confess;
 
 package Helen::Core::Relation::File;
 use Carp::Assert;
+use parent 'Helen::Core::Relation';
+
 
 sub new {
   my($class, $file_name, $arguments, $results) = @_;

@@ -19,18 +19,52 @@ use warnings;
 package Helen::Core::Relation::DBI;
 use Carp::Assert;
 use DBI;
+use Data::Dumper;
 use Devel::Confess;
+use parent 'Helen::Core::Relation';
+use fields qw(dbh name);
 
 sub new {
   my($class, $data_source, $table_name) = @_;
   assert(defined($class));
   assert(defined($data_source));
-  my $dbh = DBI->connect($data_source, "", "", { RaiseError => 1 });
+  my($self) = fields::new($class);
+  $self->SUPER::new();
 
-  my $self = bless {
-		    dbh => $dbh,
-		    name => $table_name
-		   }, $class;
+  $self->{dbh} = DBI->connect($data_source, "", "", { RaiseError => 1 });
+  $self->{name} = $table_name;
+
+  my $sth = $self->{dbh}->table_info(undef, 'public', $self->{name});
+
+  $sth->execute || die;
+
+  if (scalar($sth->fetchrow_array)) {
+    my $sth = $self->{dbh}->prepare("select * from $self->{name}");
+    
+    $sth->execute || die;
+    
+    my $arguments = [$self->{dbh}->primary_key(undef, 'public', $self->{name})];
+    
+    my %arguments;
+    @arguments{@$arguments} = ();
+    
+    my $results = [];
+    
+    foreach my $column (@{$sth->{NAME}}) {
+      push @{$results}, $column unless exists $arguments{$column};
+    }
+
+    $self->{arguments} = $arguments;
+    $self->{results} = $results;
+
+    my %positions = ();
+    @positions{@{$sth->{NAME}}} = (0..$#{$sth->{NAME}});
+    my $current = $sth->fetchall_arrayref;
+    foreach my $row (@$current) {
+      $self->{extension}->{join("/", map { $row->[$positions{$_}] } @{$arguments})} = { map { ($sth->{NAME}->[$_], $row->[$_]) } (0..$#$row) };
+    }
+  }
+
   return $self;
 }
 
@@ -48,7 +82,7 @@ sub receive {
   my $columns = [@{$other->{arguments}}, @{$other->{results}}];
 
   if (!scalar($sth->fetchrow_array)) {
-    $sth = $dbh->prepare("create table ".$self->{name}." (".join(", ", map "$_ varchar", @{$columns}).")");
+    $sth = $dbh->prepare("create table ".$self->{name}." (".join(", ", map "$_ varchar", @{$columns}).", primary key (".join(", ", @{$other->{arguments}})."))");
     $sth->execute() || die;
   }
 
