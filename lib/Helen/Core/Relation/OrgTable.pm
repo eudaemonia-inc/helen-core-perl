@@ -64,20 +64,10 @@ sub new {
       }
     }
   }
-  my $self = bless {
-		    arguments => $arguments,
-		    results => $results,
-		    extension => \%extension
-		   }, $class;
+
+  $self = fields::new($class);
+  $self->SUPER::new($arguments, $results, \%extension);
   return $self;
 }
-
-sub planck {
-  my($self, $target) = @_;
-  assert(defined($self));
-  assert(defined($target));
-  $target->receive($self);
-}
-
 
 1;

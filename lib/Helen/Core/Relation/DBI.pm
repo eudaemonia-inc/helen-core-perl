@@ -25,25 +25,22 @@ use parent 'Helen::Core::Relation';
 use fields qw(dbh name);
 
 sub new {
-  my($class, $data_source, $table_name) = @_;
+  my($class, $data_source, $name) = @_;
   assert(defined($class));
   assert(defined($data_source));
-  my($self) = fields::new($class);
-  $self->SUPER::new();
 
-  $self->{dbh} = DBI->connect($data_source, "", "", { RaiseError => 1 });
-  $self->{name} = $table_name;
+  my $dbh = DBI->connect($data_source, "", "", { RaiseError => 1 });
 
-  my $sth = $self->{dbh}->table_info(undef, 'public', $self->{name});
+  my $sth = $dbh->table_info(undef, 'public', $name);
 
   $sth->execute || die;
 
   if (scalar($sth->fetchrow_array)) {
-    my $sth = $self->{dbh}->prepare("select * from $self->{name}");
+    my $sth = $dbh->prepare("select * from $self->{name}");
     
     $sth->execute || die;
     
-    my $arguments = [$self->{dbh}->primary_key(undef, 'public', $self->{name})];
+    my $arguments = [$dbh->primary_key(undef, 'public', $name)];
     
     my %arguments;
     @arguments{@$arguments} = ();
@@ -57,13 +54,19 @@ sub new {
     $self->{arguments} = $arguments;
     $self->{results} = $results;
 
+    my %extension;
     my %positions = ();
     @positions{@{$sth->{NAME}}} = (0..$#{$sth->{NAME}});
     my $current = $sth->fetchall_arrayref;
     foreach my $row (@$current) {
-      $self->{extension}->{join("/", map { $row->[$positions{$_}] } @{$arguments})} = { map { ($sth->{NAME}->[$_], $row->[$_]) } (0..$#$row) };
+      $extension{join("/", map { $row->[$positions{$_}] } @{$arguments})} = { map { ($sth->{NAME}->[$_], $row->[$_]) } (0..$#$row) };
     }
   }
+
+  my($self) = fields::new($class);
+  $self->SUPER::new($arguments, $results, \%extension);
+  $self->{dbh} = $dbh;
+  $self->{name} = $name;
 
   return $self;
 }

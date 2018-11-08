@@ -14,14 +14,27 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package Helen::Core::Relation;
+use Carp::Assert;
+use Devel::Confess;
 use Data::Compare;
 use Data::Dumper;
 use fields qw(arguments results extension);
 
 sub new {
-  my($class) = @_;
-  my $self = fields::new($class);
+  my $self = shift;
+  $self = fields::new($self) unless ref $self;
+  my($arguments, $results, $extension) = @_;
+  $self->{arguments} = $arguments;
+  $self->{results} = $results;
+  $self->{extension} = $extension;
   return $self;
+}
+
+sub planck {
+  my($self, $target) = @_;
+  assert(defined($self));
+  assert(defined($target));
+  $target->receive($self);
 }
 
 sub compare {

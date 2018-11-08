@@ -17,8 +17,10 @@ use Devel::Confess;
 
 package Helen::Core::Relation::File;
 use Carp::Assert;
+use Data::Dumper;
+use Devel::Confess;
 use parent 'Helen::Core::Relation';
-
+use fields qw(file_name);
 
 sub new {
   my($class, $file_name, $arguments, $results) = @_;
@@ -26,31 +28,40 @@ sub new {
   assert(defined($file_name));
   assert(defined($arguments));
   assert(defined($results));
-  open(FILE, '<', $file_name) || die;
-  my %extension;
-  my %positions;
-  
   assert($#$arguments >= 0);
   assert($#$results >= 0);
+  my %extension;
+  my($self) = fields::new($class);
+  $self->SUPER::new($arguments, $results, \%extension);
+  $self->{file_name} = $file_name;
 
+  my %positions;
+  
   map { $positions{$arguments->[$_]} = $_ } (0..$#$arguments);
   map { $positions{$results->[$#$arguments + $_]} = $#$arguments + $_ + 1} (0..$#$results);
   
-  while (<FILE>) {
-    chomp;
-    my(@fields) = split /\|/;
-    my %line;
-    @line{@{$arguments}, @{$results}} = @fields;
-    $extension{join("/", @fields[0..$#$arguments])} = \%line;
+  if (open(FILE, '<', $file_name)) {
+    while (<FILE>) {
+      chomp;
+      my(@fields) = split /\|/;
+      my %line;
+      @line{@{$arguments}, @{$results}} = @fields;
+      $extension{join("/", @fields[0..$#$arguments])} = \%line;
+    }
+    close(FILE);
+  }
+
+  return $self;
+}
+
+sub receive {
+  my($self, $other) = @_;
+
+  open(FILE, '>', $self->{file_name}) || die;
+  foreach my $item (values %{$other->{extension}}) {
+    print FILE join("|", map { defined($item->{$_}) ? $item->{$_} : '' } (@{$self->{arguments}}, @{$self->{results}})), "\n";
   }
   close(FILE);
-
-  my $self = bless {
-		    arguments => $arguments,
-		    results => $results,
-		    extension => \%extension
-		   }, $class;
-  return $self;
 }
   
 1;
