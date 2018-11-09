@@ -25,20 +25,22 @@ use parent 'Helen::Core::Relation::REST';
 use fields qw(uri token api name);
 
 sub new {
-  my($class, $uri, $token, $name, $arguments) = @_;
+  my($class, $uri, $token, $depagination, $data_path, $name) = @_;
   assert(defined($class));
   assert(defined($uri));
   assert(defined($token));
   assert(defined($name));
-  assert(defined($arguments));
   my $api = new JSON::API($uri);
   
-  my $result = $api->get("$name", { includeAll => 'true' }, { Authorization => "Bearer $token" });
-  assert($result->{totalPages} == 1);
-  my %results;
-  my %extension;
+  my $result = $api->get("$name", $depagination, { Authorization => "Bearer $token" });
+  if (defined($data_path)) {
+    $result = $result->{$data_path};
+  }
+
+  my($arguments) = [ 'id' ];
+  my(%results, %extension);
   
-  foreach my $item (@{$result->{data}}) {
+  foreach my $item (@{$result}) {
     $extension{join("/", map { $item->{$_} } @{$arguments})} = $item;
     @results{keys %{$item}} = ();
   }
