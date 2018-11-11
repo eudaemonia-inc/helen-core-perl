@@ -16,16 +16,29 @@
 use strict;
 use warnings;
 
-package Helen::Core::Relation::REST;
+package Helen::Core::Relation::Directory;
+use Carp::Assert;
+use Data::Dumper;
+use Devel::Confess;
 use parent 'Helen::Core::Relation';
-use fields;
+use fields qw(path);
 
 sub new {
-  my $self = shift;
-  $self = fields::new($self) unless ref $self;
-  my($arguments, $results, $extension) = @_;
-  $self->SUPER::new(undef, $arguments, $results, $extension);
+  my($class, $path) = @_;
+  assert(defined($class));
+  assert(defined($path));
+  
+  my %extension;
+  my($self) = fields::new($class);
+  $self->SUPER::new(undef, ['name'], [], \%extension);
+  $self->{path} = $path;
+  opendir(DIR, $path) && do {
+    my(@children) = (readdir DIR);
+    foreach my $child (@children) {
+      $extension{$child} = { name => $child };
+    }
+    closedir DIR;
+  };
   return $self;
 }
-
 1;

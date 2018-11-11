@@ -35,26 +35,22 @@ sub new {
 
   $sth->execute || die;
 
+  my($arguments, $results) = ([], []);
+  my %extension;
   if (scalar($sth->fetchrow_array)) {
-    my $sth = $dbh->prepare("select * from $self->{name}");
+    my $sth = $dbh->prepare("select * from $name");
     
     $sth->execute || die;
     
-    my $arguments = [$dbh->primary_key(undef, 'public', $name)];
+    $arguments = [$dbh->primary_key(undef, 'public', $name)];
     
     my %arguments;
     @arguments{@$arguments} = ();
-    
-    my $results = [];
     
     foreach my $column (@{$sth->{NAME}}) {
       push @{$results}, $column unless exists $arguments{$column};
     }
 
-    $self->{arguments} = $arguments;
-    $self->{results} = $results;
-
-    my %extension;
     my %positions = ();
     @positions{@{$sth->{NAME}}} = (0..$#{$sth->{NAME}});
     my $current = $sth->fetchall_arrayref;
@@ -64,7 +60,7 @@ sub new {
   }
 
   my($self) = fields::new($class);
-  $self->SUPER::new($arguments, $results, \%extension);
+  $self->SUPER::new(undef, $arguments, $results, \%extension);
   $self->{dbh} = $dbh;
   $self->{name} = $name;
 

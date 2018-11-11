@@ -35,7 +35,7 @@ sub new {
 
   my $doc = $org->parse_file($file_name);
 
-  my($results, %extension);
+  my($subject, $results, %extension);
   my %positions;
 
   foreach my $table ($doc->find('Org::Element::Table')) {
@@ -65,8 +65,8 @@ sub new {
     }
   }
 
-  $self = fields::new($class);
-  $self->SUPER::new($arguments, $results, \%extension);
+  my($self) = fields::new($class);
+  $self->SUPER::new($subject, $arguments, $results, \%extension);
   return $self;
 }
 

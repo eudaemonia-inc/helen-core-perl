@@ -1,0 +1,51 @@
+; -*- org -*-
+#+BEGIN_SRC perl :tangle RailsModel.pm :noweb yes
+  # Copyright (C) 2018  Eudaemonia Inc
+  #
+  # This program is free software: you can redistribute it and/or modify
+  # it under the terms of the GNU General Public License as published by
+  # the Free Software Foundation, either version 3 of the License, or
+  # (at your option) any later version.
+  #
+  # This program is distributed in the hope that it will be useful,
+  # but WITHOUT ANY WARRANTY; without even the implied warranty of
+  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  # GNU General Public License for more details.
+  #
+  # You should have received a copy of the GNU General Public License
+  # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+  use strict;
+  use warnings;
+
+  package Helen::Core::Relation::RailsModel;
+  use Carp::Assert;
+  use Devel::Confess;
+  use Inline 'Ruby';
+  use parent 'Helen::Core::Relation';
+
+  sub new {
+    my($class, $app_directory, $name, $arguments, $results);
+    assert(defined($class));
+    assert(defined($app_directory));
+    assert(defined($name));
+    assert(!defined($arguments));
+    assert(!defined($results));
+
+    my %extension;
+    my($self) = fields::new($class);
+    $self->SUPER::new(undef, $arguments, $results, \%extension);
+    $self->{app_directory} = $app_directory;
+    $self->{name} = $name;
+
+    return $self;
+  }
+  1;
+  __DATA__
+  __Ruby__
+  <<ruby>>
+#+END_SRC
+#+NAME: ruby
+#+BEGIN_SRC ruby
+
+#+END_SRC

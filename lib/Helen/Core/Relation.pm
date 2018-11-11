@@ -18,23 +18,29 @@ use Carp::Assert;
 use Devel::Confess;
 use Data::Compare;
 use Data::Dumper;
-use fields qw(arguments results extension);
+use fields qw(subject arguments results extension);
 
 sub new {
   my $self = shift;
   $self = fields::new($self) unless ref $self;
-  my($arguments, $results, $extension) = @_;
+  my($subject, $arguments, $results, $extension) = @_;
+  $self->{subject} = $subject;
   $self->{arguments} = $arguments;
   $self->{results} = $results;
   $self->{extension} = $extension;
   return $self;
 }
 
-sub planck {
-  my($self, $target) = @_;
-  assert(defined($self));
-  assert(defined($target));
-  $target->receive($self);
+sub apply {
+  my($self, $function, @arguments) = @_;
+  foreach my $item (values %{$self->{extension}}) {
+    &{$function}($item, @arguments);
+  }
+}
+
+sub extension {
+  my($self) = shift;
+  return values %{$self->{extension}};
 }
 
 sub compare {
@@ -70,6 +76,13 @@ sub compare {
   my @there = keys %there;
   my @everywhere = keys %everywhere;
   return (\@here, \@there, \@everywhere);
+}
+
+sub planck {
+  my($self, $target) = @_;
+  assert(defined($self));
+  assert(defined($target));
+  $target->receive($self);
 }
 
 1;

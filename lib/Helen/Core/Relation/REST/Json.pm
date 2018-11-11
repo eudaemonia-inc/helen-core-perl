@@ -33,11 +33,13 @@ sub new {
   my $api = new JSON::API($uri);
   
   my $result = $api->get("$name", $depagination, { Authorization => "Bearer $token" });
+  print Dumper $result;
+  exit 0;
   if (defined($data_path)) {
     $result = $result->{$data_path};
   }
 
-  my($arguments) = [ 'id' ];
+  my($subject, $arguments) = undef, [ 'id' ];
   my(%results, %extension);
   
   foreach my $item (@{$result}) {
@@ -48,7 +50,7 @@ sub new {
   map { delete $results{$_} } @{$arguments};
 
   my($self) = fields::new($class);
-  $self->SUPER::new($arguments, [ keys %results ], \%extension);
+  $self->SUPER::new($subject, $arguments, [ keys %results ], \%extension);
   $self->{uri} = $uri;
   $self->{api} = $api;
   $self->{token} = $token;

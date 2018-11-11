@@ -32,7 +32,7 @@ sub new {
   assert($#$results >= 0);
   my %extension;
   my($self) = fields::new($class);
-  $self->SUPER::new($arguments, $results, \%extension);
+  $self->SUPER::new(undef, $arguments, $results, \%extension);
   $self->{file_name} = $file_name;
 
   my %positions;
