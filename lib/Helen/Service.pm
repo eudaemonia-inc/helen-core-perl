@@ -16,15 +16,12 @@
 use strict;
 use warnings;
 
-package Helen::Core::Relation::REST;
-use parent 'Helen::Core::Relation';
+package Helen::Service;
 use fields;
 
 sub new {
   my $self = shift;
   $self = fields::new($self) unless ref $self;
-  my($subject, $arguments, $results, $extension) = @_;
-  $self->SUPER::new($subject, $arguments, $results, $extension);
   return $self;
 }
 

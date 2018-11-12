@@ -16,16 +16,24 @@
 use strict;
 use warnings;
 
-package Helen::Core::Relation::REST;
-use parent 'Helen::Core::Relation';
-use fields;
+package Helen::Service::Json;
+use Data::Dumper;
+use parent 'Helen::Service';
+use fields qw(uri api pagination);
 
 sub new {
   my $self = shift;
   $self = fields::new($self) unless ref $self;
-  my($subject, $arguments, $results, $extension) = @_;
-  $self->SUPER::new($subject, $arguments, $results, $extension);
+  $self->SUPER::new();
+  my($uri) = @_;
+  my($api) = new JSON::API($uri);
+  $self->{uri} = $uri;
+  $self->{api} = $api;
   return $self;
 }
 
+sub get {
+  my($self, $subject, $name) = @_;
+  return $self->{api}->get($name, $self->{pagination}, $self->authorization($subject));
+}
 1;

@@ -21,28 +21,23 @@ use Carp::Assert;
 use Data::Dumper;
 use Devel::Confess;
 use JSON::API;
+use JSON::Path;
 use parent 'Helen::Core::Relation::REST';
-use fields qw(uri token api name);
+use fields qw(service name);
 
 sub new {
-  my($class, $uri, $token, $depagination, $data_path, $name) = @_;
+  my($class, $subject, $service, $name, $path, $arguments) = @_;
   assert(defined($class));
-  assert(defined($uri));
-  assert(defined($token));
+  assert(defined($subject));
+  assert(defined($service));
   assert(defined($name));
-  my $api = new JSON::API($uri);
+  assert(defined($path));
+  my $jpath = new JSON::Path($path);
   
-  my $result = $api->get("$name", $depagination, { Authorization => "Bearer $token" });
-  print Dumper $result;
-  exit 0;
-  if (defined($data_path)) {
-    $result = $result->{$data_path};
-  }
-
-  my($subject, $arguments) = undef, [ 'id' ];
+  my $result = $service->get($subject, $name);
   my(%results, %extension);
   
-  foreach my $item (@{$result}) {
+  foreach my $item ($jpath->values($result)) {
     $extension{join("/", map { $item->{$_} } @{$arguments})} = $item;
     @results{keys %{$item}} = ();
   }
@@ -51,9 +46,7 @@ sub new {
 
   my($self) = fields::new($class);
   $self->SUPER::new($subject, $arguments, [ keys %results ], \%extension);
-  $self->{uri} = $uri;
-  $self->{api} = $api;
-  $self->{token} = $token;
+  $self->{service} = $service;
   $self->{name} = $name;
 
   return $self;

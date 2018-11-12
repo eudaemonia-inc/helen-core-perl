@@ -16,16 +16,21 @@
 use strict;
 use warnings;
 
-package Helen::Core::Relation::REST;
-use parent 'Helen::Core::Relation';
+package Helen::Service::Smartsheet;
+use parent 'Helen::Service::Json';
 use fields;
 
 sub new {
-  my $self = shift;
+  my($self) = shift;
   $self = fields::new($self) unless ref $self;
-  my($subject, $arguments, $results, $extension) = @_;
-  $self->SUPER::new($subject, $arguments, $results, $extension);
-  return $self;
+  my($token) = @_;
+  $self->SUPER::new('https://api.smartsheet.com/2.0', $token);
+  $self->{pagination} = { includeAll => 'true' };
+   return $self;
 }
 
+sub authorization {
+  my($self, $subject) = @_;
+  return { Authorization => "Bearer $subject->[0]" };
+}
 1;
