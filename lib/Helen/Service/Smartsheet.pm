@@ -17,6 +17,7 @@ use strict;
 use warnings;
 
 package Helen::Service::Smartsheet;
+use JSON::API;
 use parent 'Helen::Service::Json';
 use fields;
 

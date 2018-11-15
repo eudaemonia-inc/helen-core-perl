@@ -20,6 +20,8 @@ package Helen::Core::Relation::Smartsheet;
 use Carp::Assert;
 use Data::Dumper;
 use Devel::Confess;
+use Helen::Core::Relation::REST::Json;
+use Helen::Service::Smartsheet;
 use parent 'Helen::Core::Relation';
 use fields;
 
