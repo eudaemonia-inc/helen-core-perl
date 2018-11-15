@@ -24,16 +24,18 @@ use parent 'Helen::Core::Relation';
 use fields qw(file_name);
 
 sub new {
-  my($class, $hash_ref, $arguments) = @_;
+  my($class, $hash_ref, $arguments, $results) = @_;
   assert(defined($class));
   assert(defined($hash_ref));
   assert(defined($arguments));
   assert($#$arguments >= 0);
 
-  my %results = ();
-  @results{map { keys %$_ } values %$hash_ref} = ();
-  map { delete $results{$_} } @$arguments;
-  my $results = [keys %results];
+  if (!defined($results)) {
+    my %results = ();
+    @results{map { keys %$_ } values %$hash_ref} = ();
+    map { delete $results{$_} } @$arguments;
+    $results = [keys %results];
+  }
   my %extension = %{$hash_ref};
   my($self) = fields::new($class);
   $self->SUPER::new(undef, $arguments, $results, \%extension);
