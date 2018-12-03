@@ -18,7 +18,6 @@ use warnings;
 
 package Helen::Core::Relation::Directory;
 use Carp::Assert;
-use Data::Dumper;
 use Devel::Confess;
 use parent 'Helen::Core::Relation';
 use fields qw(path);

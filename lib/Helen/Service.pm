@@ -13,16 +13,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+package Helen::Service;
 use strict;
 use warnings;
 
-package Helen::Service;
-use fields;
+use Moose;
+use namespace::autoclean;
 
-sub new {
-  my $self = shift;
-  $self = fields::new($self) unless ref $self;
-  return $self;
-}
-
+no Moose;
+__PACKAGE__->meta->make_immutable;
 1;

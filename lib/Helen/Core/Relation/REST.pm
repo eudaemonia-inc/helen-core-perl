@@ -13,19 +13,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+package Helen::Core::Relation::REST;
 use strict;
 use warnings;
-
-package Helen::Core::Relation::REST;
+use Moose;
+use namespace::autoclean;
 use parent 'Helen::Core::Relation';
-use fields;
 
-sub new {
-  my $self = shift;
-  $self = fields::new($self) unless ref $self;
-  my($subject, $arguments, $results, $extension) = @_;
-  $self->SUPER::new($subject, $arguments, $results, $extension);
-  return $self;
-}
+around 'BUILDARGS' => sub {
+  my $orig = shift;
+  my $class = shift;
+  return $class->orig({map {$_ => shift } qw(subject arguments results extension)});
+};
 
+no Moose;
+__PACKAGE__->meta->make_immutable;
 1;

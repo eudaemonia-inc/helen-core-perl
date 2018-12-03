@@ -13,42 +13,51 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+package Helen::Core::Relation::REST::Json;
 use strict;
 use warnings;
-
-package Helen::Core::Relation::REST::Json;
+use Moose;
+use namespace::autoclean;
 use Carp::Assert;
-use Data::Dumper;
 use Devel::Confess;
 use JSON::API;
 use JSON::Path;
 use parent 'Helen::Core::Relation::REST';
-use fields qw(service name);
 
-sub new {
-  my($class, $subject, $service, $name, $path, $arguments) = @_;
-  assert(defined($class));
-  assert(defined($subject));
-  assert(defined($service));
-  assert(defined($name));
-  assert(defined($path));
-  my $jpath = new JSON::Path($path);
+has 'name' => (is => 'ro', isa => 'Str');
+has 'path' => (is => 'ro', isa => 'Str');
+
+around 'BUILDARGS' => sub {
+  my $orig = shift;
+  my $class = shift;
+  return $class->$orig({map {$_ => shift } qw(subject name path arguments)});
+};
+
+sub BUILD {
+  my $self = shift;
   
-  my $result = $service->get($subject, $name);
+  # assert(defined($class));
+  # assert(defined($service));
+  # assert(defined($name));
+  # assert(defined($path));
+
+  my $jpath = JSON::Path->new($self->path);
+  
+  my $result = $self->subject->get($self->name);
   my(%results, %extension);
   
   foreach my $item ($jpath->values($result)) {
-    $extension{join("/", map { $item->{$_} } @{$arguments})} = $item;
+    $extension{join("/", map { $item->{$_} } @{$self->arguments})} = $item;
     @results{keys %{$item}} = ();
   }
 	 
-  map { delete $results{$_} } @{$arguments};
+  map { delete $results{$_} } @{$self->arguments};
 
-  my($self) = fields::new($class);
-  $self->SUPER::new($subject, $arguments, [ keys %results ], \%extension);
-  $self->{service} = $service;
-  $self->{name} = $name;
-
-  return $self;
+  $self->results([ keys %results ]);
+  $self->extension(\%extension);
+  return;
 }
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
 1;

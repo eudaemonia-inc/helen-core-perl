@@ -1,51 +1,78 @@
 ; -*- org -*-
 #+BEGIN_SRC perl :tangle RailsModel.pm :noweb yes
-  # Copyright (C) 2018  Eudaemonia Inc
-  #
-  # This program is free software: you can redistribute it and/or modify
-  # it under the terms of the GNU General Public License as published by
-  # the Free Software Foundation, either version 3 of the License, or
-  # (at your option) any later version.
-  #
-  # This program is distributed in the hope that it will be useful,
-  # but WITHOUT ANY WARRANTY; without even the implied warranty of
-  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  # GNU General Public License for more details.
-  #
-  # You should have received a copy of the GNU General Public License
-  # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    # Copyright (C) 2018  Eudaemonia Inc
+    #
+    # This program is free software: you can redistribute it and/or modify
+    # it under the terms of the GNU General Public License as published by
+    # the Free Software Foundation, either version 3 of the License, or
+    # (at your option) any later version.
+    #
+    # This program is distributed in the hope that it will be useful,
+    # but WITHOUT ANY WARRANTY; without even the implied warranty of
+    # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    # GNU General Public License for more details.
+    #
+    # You should have received a copy of the GNU General Public License
+    # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-  use strict;
-  use warnings;
+    use strict;
+    use warnings;
 
-  package Helen::Core::Relation::RailsModel;
-  use Carp::Assert;
-  use Devel::Confess;
-  use Inline 'Ruby';
-  use parent 'Helen::Core::Relation';
+    package Helen::Core::Relation::RailsModel;
+    use Inline 'Ruby';
+    use Carp::Assert;
+    use Data::Dumper;
+    use Devel::Confess;
+    use parent 'Helen::Core::Relation';
+    use fields qw(app_directory name);
 
-  sub new {
-    my($class, $app_directory, $name, $arguments, $results);
-    assert(defined($class));
-    assert(defined($app_directory));
-    assert(defined($name));
-    assert(!defined($arguments));
-    assert(!defined($results));
+    sub new {
+      my Helen::Core::Relation::RailsModel $self = shift;
+      unless (ref $self) {
+        $self = fields::new($self);
+      }
+      my($app_directory, $name, $arguments, $results) = @_;
 
-    my %extension;
-    my($self) = fields::new($class);
-    $self->SUPER::new(undef, $arguments, $results, \%extension);
-    $self->{app_directory} = $app_directory;
-    $self->{name} = $name;
+      assert(defined($app_directory), 'app_directory is provided');
+      assert(defined($name), 'name is provided');
+      assert(!defined($arguments), 'arguments are not provided');
+      assert(!defined($results), 'results are not provided');
 
-    return $self;
-  }
-  1;
+      my %extension;
+      $self->SUPER::new(undef, $arguments, $results, \%extension);
+      $self->{app_directory} = $app_directory;
+      $self->{name} = $name;
+
+      return $self;
+    }
+
+    sub receive {
+      my($self, $other) = @_;
+      print Dumper(%Helen::Core::Relation::), "\n";
+      print Dumper($self), "\n";
+    }
+    
+    1;
   __DATA__
   __Ruby__
   <<ruby>>
 #+END_SRC
 #+NAME: ruby
 #+BEGIN_SRC ruby
+  module Helen
+    module Core
+      module Relation
+        class RailsModel
+          def initialize(app_directory, name, arguments, results)
+            @perl = Helen::Core::Relation::RailsModelPerlHelper.new(app_directory, name, arguments, results)
+          end
+          
+          def receive(other)
+            puts "yay"
+          end
+        end
+      end
+    end
+  end
 
 #+END_SRC

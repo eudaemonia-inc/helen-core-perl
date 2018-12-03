@@ -36,8 +36,8 @@ sub new {
 sub receive {
   my($self, $other) = @_;
 
-  open(FILE, '>', $self->{file_name}) || die;
-  print FILE Dumper($other);
-  close(FILE);
+  open(my $FILE, '>', $self->{file_name}) || die;
+  print $FILE Dumper($other);
+  close($FILE);
 }
 1;

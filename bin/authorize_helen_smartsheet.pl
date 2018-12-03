@@ -1,3 +1,4 @@
+#!/usr/bin/env perl
 # Copyright (C) 2018  Eudaemonia Inc
 #
 # This program is free software: you can redistribute it and/or modify
@@ -16,31 +17,16 @@
 use strict;
 use warnings;
 
-package Helen::Core::Symbol::REST::Json;
-use Carp::Assert;
-use Devel::Confess;
-use JSON::API;
-use parent 'Helen::Core::Symbol::REST';
-use fields qw(uri token api name);
+use Helen::Core::Agent;
+use Helen::Service::Smartsheet;
 
-sub new {
-  my($class, $uri, $token, $name) = @_;
-  assert(defined($class));
-  assert(defined($uri));
-  assert(defined($token));
-  assert(defined($name));
-  my $api = new JSON::API($uri);
-  
-  my $result = $api->get("$name", undef, { Authorization => "Bearer $token" });
-
-  my($self) = fields::new($class);
-  $self->SUPER::new();
-  $self->{uri} = $uri;
-  $self->{api} = $api;
-  $self->{token} = $token;
-  $self->{name} = $name;
-
-  return $self;
-}
-
-1;
+my $identity = Helen::Core::Agent->new('ngfw-esc-user.gen@cisco.com');
+my $sheets = Helen::Service::Smartsheet->new($identity);
+$sheets->authorize_helen(sub {
+			   my($url) = shift;
+			   print "URL: $url\n";
+			   print "Please go to the above url and enter the returned code: ";
+			   my $code = <>;
+			   chomp $code;
+			   return $code;
+			 });

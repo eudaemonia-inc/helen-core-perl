@@ -14,47 +14,57 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package Helen::Core::Relation;
+use Moose;
+use namespace::autoclean;
+
 use Carp::Assert;
 use Devel::Confess;
 use Data::Compare;
-use Data::Dumper;
-use fields qw(subject arguments results extension);
 
-sub new {
-  my $self = shift;
-  $self = fields::new($self) unless ref $self;
-  my($subject, $arguments, $results, $extension) = @_;
-  $self->{subject} = $subject;
-  $self->{arguments} = $arguments;
-  $self->{results} = $results;
-  $self->{extension} = $extension;
-  return $self;
-}
+around 'BUILDARGS' => sub {
+  my $orig = shift;
+  my $class = shift;
+  return $class->$orig({ map { $_ => shift } qw(subject arguments results extension)});
+};
+  
+has 'subject' => (
+		  is => 'ro',
+		 );
+
+has 'arguments' => (
+		    is => 'rw',
+		    isa => 'ArrayRef[Str]',
+		    );
+
+has 'results' => (
+		  is => 'rw',
+		  isa => 'ArrayRef[Str]',
+		 );
+
+has 'extension' => (
+		    is => 'rw',
+		    isa => 'HashRef[HashRef]',
+		   );
 
 sub apply {
   my($self, $function, @arguments) = @_;
   foreach my $item (values %{$self->{extension}}) {
     &{$function}($item, @arguments);
   }
-}
-
-sub extension {
-  my($self) = shift;
-  return values %{$self->{extension}};
+  return;
 }
 
 sub compare {
   my($self, $other) = @_;
-  die unless $#{$self->{arguments}} == $#{$other->{arguments}};
-  die unless $#{$self->{results}} == $#{$other->{results}};
-  my(@a, @b);
-  @a = @{$self->{arguments}};
-  @b = @{$other->{arguments}};
+  die unless $#{$self->arguments} == $#{$other->arguments};
+  die unless $#{$self->results} == $#{$other->results};
+  my @a = @{$self->arguments};
+  my @b = @{$other->arguments};
   while (@a) {
     die unless (shift @a) eq (shift @b);
   }
-  @a = @{$self->{results}};
-  @b = @{$other->{results}};
+  @a = @{$self->results};
+  @b = @{$other->results};
   while (@a) {
     die unless (shift @a) eq (shift @b);
   }
@@ -71,7 +81,7 @@ sub compare {
 					    }
 					  } else {
 					    $foo = defined($other->{extension}->{$key}->{$_});
-					  }} @{$self->{results}}} grep { exists $other->{extension}->{$_} } keys %{$self->{extension}}} = ();
+					  }} @{$self->results}} grep { exists $other->{extension}->{$_} } keys %{$self->{extension}}} = ();
   my @here = keys %here;
   my @there = keys %there;
   my @everywhere = keys %everywhere;
@@ -83,6 +93,9 @@ sub planck {
   assert(defined($self));
   assert(defined($target));
   $target->receive($self);
+  return;
 }
 
+no Moose;
+__PACKAGE__->meta->make_immutable;
 1;

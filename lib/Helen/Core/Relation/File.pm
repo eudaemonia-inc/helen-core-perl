@@ -13,11 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use Devel::Confess;
+use strict;
+use warnings;
 
 package Helen::Core::Relation::File;
 use Carp::Assert;
-use Data::Dumper;
 use Devel::Confess;
 use parent 'Helen::Core::Relation';
 use fields qw(file_name);
@@ -40,8 +40,8 @@ sub new {
   map { $positions{$arguments->[$_]} = $_ } (0..$#$arguments);
   map { $positions{$results->[$#$arguments + $_]} = $#$arguments + $_ + 1} (0..$#$results);
   
-  if (open(FILE, '<', $file_name)) {
-    while (<FILE>) {
+  if (open(my $FILE, '<', $file_name)) {
+    while (<$FILE>) {
       chomp;
       my(@fields) = split /\|/;
       my %line;
@@ -57,11 +57,11 @@ sub new {
 sub receive {
   my($self, $other) = @_;
 
-  open(FILE, '>', $self->{file_name}) || die;
+  open(my $FILE, '>', $self->{file_name}) || die;
   foreach my $item (values %{$other->{extension}}) {
-    print FILE join("|", map { defined($item->{$_}) ? $item->{$_} : '' } (@{$self->{arguments}}, @{$self->{results}})), "\n";
+    print $FILE join("|", map { defined($item->{$_}) ? $item->{$_} : '' } (@{$self->{arguments}}, @{$self->{results}})), "\n";
   }
-  close(FILE);
+  close($FILE);
 }
   
 1;

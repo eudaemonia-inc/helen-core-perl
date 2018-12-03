@@ -13,27 +13,60 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+package Helen::Service::Json;
 use strict;
 use warnings;
-
-package Helen::Service::Json;
-use Data::Dumper;
+use Moose;
+use namespace::autoclean;
+use JSON::API;
 use parent 'Helen::Service';
-use fields qw(uri api pagination);
 
-sub new {
+has 'uri' => (
+	      is => 'ro',
+	      isa => 'Str',
+	     );
+
+has 'api' => (
+	      is => 'rw',
+	      isa => 'Object',
+	     );
+
+has 'pagination' => (
+		    is => 'rw',
+		    isa => 'Maybe[HashRef]',
+		   );
+
+has 'subject' => (
+		  is => 'rw',
+		  isa => 'Object',
+		 );
+
+around 'BUILDARGS' => sub {
+  my $orig = shift;
+  my $class = shift;
+  return $class->$orig(@_);
+};
+
+sub BUILD {
   my $self = shift;
-  $self = fields::new($self) unless ref $self;
-  $self->SUPER::new();
-  my($uri) = @_;
-  my($api) = new JSON::API($uri);
-  $self->{uri} = $uri;
-  $self->{api} = $api;
-  return $self;
+
+  $self->api(JSON::API->new($self->uri));
+  return;
 }
 
 sub get {
-  my($self, $subject, $name) = @_;
-  return $self->{api}->get($name, $self->{pagination}, $self->authorization($subject));
+  my($self, $subject, $name, $params) = @_;
+  my %params;
+  %params = %{$params} if defined $params;
+  if (defined($self->pagination)) {
+    foreach my $param (keys %{$self->pagination}) {
+      $params{$param} = $self->pagination->{$param};
+    }
+  }
+  
+  my $result = $self->{api}->get($name, $self->pagination, $self->authorization);
+  return $result;
 }
+no Moose;
+__PACKAGE__->meta->make_immutable;
 1;

@@ -17,52 +17,74 @@ use strict;
 use warnings;
 
 package Helen::Core::Relation::DBI;
+use Moose;
+use namespace::autoclean;
+
 use Carp::Assert;
 use DBI;
-use Data::Dumper;
 use Devel::Confess;
 use parent 'Helen::Core::Relation';
 use fields qw(dbh name);
 
-sub new {
-  my($class, $data_source, $name) = @_;
-  assert(defined($class));
-  assert(defined($data_source));
+has 'data_source' => (
+		      is => 'ro',
+		      isa => 'Str',
+		     );
 
-  my $dbh = DBI->connect($data_source, "", "", { RaiseError => 1 });
+has 'name' => (
+	       is => 'ro',
+	       isa => 'Str',
+	      );
 
-  my $sth = $dbh->table_info(undef, 'public', $name);
+has 'dbh' => (
+	      is => 'rw',
+	      isa => 'Object',
+	     );
+
+around 'BUILDARGS' => sub {
+  my $orig = shift;
+  my $class = shift;
+  return $class->$orig({ map { $_ => shift } qw(data_source name)});
+};
+
+sub BUILD {
+  my $self = shift;
+  # assert(defined($class));
+  # assert(defined($data_source));
+
+  my $dbh = DBI->connect($self->data_source, "", "", { RaiseError => 1 });
+
+  my $sth = $dbh->table_info(undef, 'public', $self->name);
 
   $sth->execute || die;
 
-  my($arguments, $results) = ([], []);
-  my %extension;
+  $self->arguments([]);
+  $self->results([]);
+
+  $self->extension({});
   if (scalar($sth->fetchrow_array)) {
-    my $sth = $dbh->prepare("select * from $name");
+    my $sth = $dbh->prepare("select * from ".$self->name);
     
     $sth->execute || die;
     
-    $arguments = [$dbh->primary_key(undef, 'public', $name)];
+    $self->arguments([$dbh->primary_key(undef, 'public', $self->name)]);
     
     my %arguments;
-    @arguments{@$arguments} = ();
+    @arguments{@{$self->arguments}} = ();
     
     foreach my $column (@{$sth->{NAME}}) {
-      push @{$results}, $column unless exists $arguments{$column};
+      push @{$self->results}, $column unless exists $arguments{$column};
     }
 
     my %positions = ();
     @positions{@{$sth->{NAME}}} = (0..$#{$sth->{NAME}});
     my $current = $sth->fetchall_arrayref;
     foreach my $row (@$current) {
-      $extension{join("/", map { $row->[$positions{$_}] } @{$arguments})} = { map { ($sth->{NAME}->[$_], $row->[$_]) } (0..$#$row) };
+      $self->extension->{join("/", map { $row->[$positions{$_}] } @{$self->arguments})} = { map { ($sth->{NAME}->[$_], $row->[$_]) } (0..$#$row) };
     }
   }
 
-  my($self) = fields::new($class);
-  $self->SUPER::new(undef, $arguments, $results, \%extension);
-  $self->{dbh} = $dbh;
-  $self->{name} = $name;
+  $self->dbh($dbh);
 
   return $self;
 }
@@ -78,22 +100,22 @@ sub receive {
 
   $sth->execute || die;
 
-  my $columns = [@{$other->{arguments}}, @{$other->{results}}];
+  my $columns = [@{$other->arguments}, @{$other->results}];
 
   if (!scalar($sth->fetchrow_array)) {
-    $sth = $dbh->prepare("create table ".$self->{name}." (".join(", ", map "$_ varchar", @{$columns}).", primary key (".join(", ", @{$other->{arguments}})."))");
+    $sth = $dbh->prepare("create table ".$self->{name}." (".join(", ", map "$_ varchar", @{$columns}).", primary key (".join(", ", @{$other->arguments})."))");
     $sth->execute() || die;
   }
 
-  $sth = $dbh->prepare('select '.join(", ", @{$other->{arguments}}).' from '.$self->{name});
+  $sth = $dbh->prepare('select '.join(", ", @{$other->arguments}).' from '.$self->{name});
 
   $sth->execute() || die;
 
-  my $current = $sth->fetchall_hashref($other->{arguments});
+  my $current = $sth->fetchall_hashref($other->arguments);
 
-  my $delete_sth = $dbh->prepare('delete from '.$self->{name}.' where '.join(" and ", map { "$_ = ?" } @{$other->{arguments}}));
+  my $delete_sth = $dbh->prepare('delete from '.$self->{name}.' where '.join(" and ", map { "$_ = ?" } @{$other->arguments}));
 
-  my $update_sth = $dbh->prepare('update '.$self->{name}.' set '.join(", ", map "$_ = ?", @{$other->{results}}).' where '.join(" and ", map { "$_ = ?" } @{$other->{arguments}}));
+  my $update_sth = $dbh->prepare('update '.$self->{name}.' set '.join(", ", map "$_ = ?", @{$other->results}).' where '.join(" and ", map { "$_ = ?" } @{$other->arguments}));
 
   my $insert_sth = $dbh->prepare('insert into '.$self->{name}.' ('.join(", ", @{$columns}).') values ('.join(", ", map "?", @{$columns}).')');
 
@@ -102,7 +124,7 @@ sub receive {
   map {
     if (defined($current->{$_})) {
       my $key = $_;
-      $update_sth->execute(map { $extension{$key}{$_} } (@{$other->{results}}, @{$other->{arguments}})) || die;
+      $update_sth->execute(map { $extension{$key}{$_} } (@{$other->results}, @{$other->arguments})) || die;
       delete $extension{$key};
     } else {
       $delete_sth->execute($_) || die;
@@ -114,4 +136,6 @@ sub receive {
   $sth->execute() || die;
 }
   
+no Moose;
+__PACKAGE__->meta->make_immutable;
 1;
