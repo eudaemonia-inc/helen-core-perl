@@ -20,7 +20,6 @@ use warnings;
 use Moose;
 use namespace::autoclean;
 use Carp::Assert;
-use Devel::Confess;
 use Helen::Core::Relation::Secret::Keyring;
 use Helen::Core::Relation::Secret::Keyring::Tie::Hash;
 

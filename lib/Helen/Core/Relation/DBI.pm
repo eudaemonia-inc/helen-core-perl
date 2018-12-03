@@ -22,7 +22,6 @@ use namespace::autoclean;
 
 use Carp::Assert;
 use DBI;
-use Devel::Confess;
 use parent 'Helen::Core::Relation';
 use fields qw(dbh name);
 

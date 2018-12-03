@@ -18,7 +18,6 @@ use Moose;
 use namespace::autoclean;
 
 use Carp::Assert;
-use Devel::Confess;
 use Data::Compare;
 
 around 'BUILDARGS' => sub {

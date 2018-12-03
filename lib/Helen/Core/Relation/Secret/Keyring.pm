@@ -19,7 +19,6 @@ package Helen::Core::Relation::Secret::Keyring;
 use Moose;
 use namespace::autoclean;
 use Carp::Assert;
-use Devel::Confess;
 use Passwd::Keyring::Gnome;
 use Sentinel;
 use parent 'Helen::Core::Relation::Secret';

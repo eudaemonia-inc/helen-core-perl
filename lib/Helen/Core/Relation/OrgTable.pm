@@ -23,7 +23,6 @@ use Moose;
 use namespace::autoclean;
 
 use Carp::Assert qw(:DEBUG);
-use Devel::Confess;
 use parent 'Helen::Core::Relation';
 
 our $org = new Org::Parser;

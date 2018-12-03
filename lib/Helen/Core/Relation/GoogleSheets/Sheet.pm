@@ -20,7 +20,6 @@ package Helen::Core::Relation::GoogleSheets::Sheet;
 use Moose;
 use namespace::autoclean;
 use Carp::Assert;
-use Devel::Confess;
 use Helen::Service::GoogleSheets;
 use Helen::Core::Relation::REST::Json;
 use parent 'Helen::Core::Relation::REST::Json';

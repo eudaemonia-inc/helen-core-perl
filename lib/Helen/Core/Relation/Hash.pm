@@ -18,7 +18,6 @@ use warnings;
 
 package Helen::Core::Relation::Hash;
 use Carp::Assert;
-use Devel::Confess;
 use parent 'Helen::Core::Relation';
 use fields qw(file_name);
 

@@ -18,7 +18,6 @@ use warnings;
 
 package Helen::Core::Symbol::REST::Json;
 use Carp::Assert;
-use Devel::Confess;
 use JSON::API;
 use parent 'Helen::Core::Symbol::REST';
 use fields qw(uri token api name);

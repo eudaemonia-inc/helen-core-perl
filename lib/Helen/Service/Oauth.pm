@@ -19,7 +19,6 @@ use warnings;
 use Moose;
 use namespace::autoclean;
 use Carp::Assert;
-use Devel::Confess;
 use LWP::Authen::OAuth2;
 use JSON;
 

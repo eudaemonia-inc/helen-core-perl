@@ -19,7 +19,6 @@ use warnings;
 use Moose;
 use namespace::autoclean;
 use Carp::Assert;
-use Devel::Confess;
 use Helen::Core::Relation::REST::Json;
 use Helen::Service::Smartsheet;
 use parent 'Helen::Core::Relation';

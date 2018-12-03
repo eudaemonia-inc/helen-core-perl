@@ -19,7 +19,6 @@ use warnings;
 use Moose;
 use namespace::autoclean;
 use Carp::Assert;
-use Devel::Confess;
 use JSON::API;
 use JSON::Path;
 use parent 'Helen::Core::Relation::REST';
