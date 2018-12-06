@@ -14,9 +14,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package Helen::Core::Relation;
+use strict;
+use warnings;
+use version; our $VERSION = version->declare('v0.0.0');
 use Moose;
 use namespace::autoclean;
-
 use Carp::Assert;
 use Data::Compare;
 
@@ -32,12 +34,12 @@ has 'subject' => (
 
 has 'arguments' => (
 		    is => 'rw',
-		    isa => 'ArrayRef[Str]',
+		    isa => 'Maybe[ArrayRef[Str]]',
 		    );
 
 has 'results' => (
 		  is => 'rw',
-		  isa => 'ArrayRef[Str]',
+		  isa => 'Maybe[ArrayRef[Str]]',
 		 );
 
 has 'extension' => (

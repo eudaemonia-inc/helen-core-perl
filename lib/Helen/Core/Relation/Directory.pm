@@ -13,30 +13,43 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use strict;
-use warnings;
 
 package Helen::Core::Relation::Directory;
+use strict;
+use warnings;
+use version; our $VERSION = version->declare('v0.0.0');
+use Moose;
+use namespace::autoclean;
 use Carp::Assert;
 use parent 'Helen::Core::Relation';
-use fields qw(path);
 
-sub new {
-  my($class, $path) = @_;
-  assert(defined($class));
-  assert(defined($path));
+has 'path' => ( is => 'ro', isa => 'Str' );
+
+around 'BUILDARGS' => sub {
+  my $orig = shift;
+  my $class = shift;
+  return $class->$orig({ map { $_ => shift } qw(path)});
+};
+
+sub BUILD {
+  my $self = shift;
+  # assert(defined($class));
+  # assert(defined($path));
   
   my %extension;
-  my($self) = fields::new($class);
-  $self->SUPER::new(undef, ['name'], [], \%extension);
-  $self->{path} = $path;
-  opendir(DIR, $path) && do {
+  opendir(DIR, $self->path) && do {
     my(@children) = (readdir DIR);
     foreach my $child (@children) {
       $extension{$child} = { name => $child };
     }
     closedir DIR;
   };
-  return $self;
+  $self->arguments(['name']);
+  $self->results([]);
+  $self->extension(\%extension);
+  return;
 }
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
 1;

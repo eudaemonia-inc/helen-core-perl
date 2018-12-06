@@ -16,6 +16,7 @@
 package Helen::Core::Agent;
 use strict;
 use warnings;
+use version; our $VERSION = version->declare('v0.0.0');
 
 use Moose;
 use namespace::autoclean;
