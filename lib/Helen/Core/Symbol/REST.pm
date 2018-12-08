@@ -15,7 +15,7 @@
 
 use strict;
 use warnings;
-use version; our $VERSION = version->declare('v0.0.0');
+use version; our $VERSION = version->declare('v0.0.1pre');
 
 package Helen::Core::Symbol::REST;
 use parent 'Helen::Core::Symbol';
