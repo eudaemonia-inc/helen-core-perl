@@ -17,7 +17,7 @@ package Helen::Core::Symbol;
 use strict;
 use warnings;
 use fields;
-use version; our $VERSION = version->declare('v0.0.1pre');
+use version; our $VERSION = version->declare('v0.0.1');
 
 sub new {
   my $self = shift;

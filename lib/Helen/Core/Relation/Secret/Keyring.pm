@@ -14,7 +14,7 @@
 
 use strict;
 use warnings;
-use version; our $VERSION = version->declare('v0.0.1pre');
+use version; our $VERSION = version->declare('v0.0.1');
 
 package Helen::Core::Relation::Secret::Keyring;
 use Moose;
