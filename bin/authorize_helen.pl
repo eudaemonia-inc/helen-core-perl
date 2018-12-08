@@ -16,16 +16,25 @@
 
 use strict;
 use warnings;
-
+use Class::Load ':all';
 use Helen::Core::Agent;
-use Helen::Service::GoogleSheets;
 
-my $identity = Helen::Core::Agent->new('hermit@acm.org');
-my $sheets = Helen::Service::GoogleSheets->new($identity);
-$sheets->authorize_helen(sub {
+if (@ARGV != 2) {
+  die "usage: $0 email-address service-name\n";
+}
+
+my $email_address = shift;
+my $service_name = shift;
+
+die "illegal service name $service_name\n" unless $service_name =~ /^[A-Za-z0-9_]+$/;
+die "can't load service $service_name\n" unless load_class("Helen::Service::$service_name");
+
+my $identity = Helen::Core::Agent->new($email_address);
+my $service = eval "Helen::Service::$service_name->new(\$identity);";
+$service->authorize_helen(sub {
 			   my($url) = shift;
 			   print "URL: $url\n";
-			   print "Please go to the above url and enter the returned code: ";
+			   print "Please go to the above url (or otherwise follow instructions) and enter the returned code: ";
 			   my $code = <>;
 			   chomp $code;
 			   return $code;

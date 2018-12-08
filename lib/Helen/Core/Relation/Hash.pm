@@ -13,32 +13,41 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+package Helen::Core::Relation::Hash;
 use strict;
 use warnings;
 use version; our $VERSION = version->declare('v0.0.0');
-
-package Helen::Core::Relation::Hash;
+use Moose;
 use Carp::Assert;
 use parent 'Helen::Core::Relation';
-use fields qw(file_name);
 
-sub new {
-  my($class, $hash_ref, $arguments, $results) = @_;
-  assert(defined($class));
-  assert(defined($hash_ref));
-  assert(defined($arguments));
-  assert($#$arguments >= 0);
+has 'hash_ref' => (is => 'ro', isa => 'HashRef');
 
-  if (!defined($results)) {
+around 'BUILDARGS' => sub {
+  my $orig = shift;
+  my $class = shift;
+  return $class->$orig({ map { $_ => shift } qw(hash_ref arguments results)});
+};
+
+sub BUILD {
+  my $self = shift;
+  
+  # assert(defined($class));
+  # assert(defined($hash_ref));
+  # assert(defined($arguments));
+  # assert($#$arguments >= 0);
+
+  if (!defined($self->results)) {
     my %results = ();
-    @results{map { keys %$_ } values %$hash_ref} = ();
-    map { delete $results{$_} } @$arguments;
-    $results = [keys %results];
+    @results{map { keys %$_ } values %{$self->hash_ref}} = ();
+    map { delete $results{$_} } @{$self->arguments};
+    $self->results([keys %results]);
   }
-  my %extension = %{$hash_ref};
-  my($self) = fields::new($class);
-  $self->SUPER::new(undef, $arguments, $results, \%extension);
-  return $self;
+  my %extension = %{$self->hash_ref};
+  $self->extension(\%extension);
+  return;
 }
 
+no Moose;
+__PACKAGE__->meta->make_immutable;
 1;

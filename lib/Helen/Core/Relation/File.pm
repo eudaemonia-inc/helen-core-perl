@@ -13,55 +13,62 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+package Helen::Core::Relation::File;
 use strict;
 use warnings;
 use version; our $VERSION = version->declare('v0.0.0');
-
-package Helen::Core::Relation::File;
+use Moose;
 use Carp::Assert;
+use Data::Dumper;
 use parent 'Helen::Core::Relation';
-use fields qw(file_name);
 
-sub new {
-  my($class, $file_name, $arguments, $results) = @_;
-  assert(defined($class));
-  assert(defined($file_name));
-  assert(defined($arguments));
-  assert(defined($results));
-  assert($#$arguments >= 0);
-  assert($#$results >= 0);
+has 'file_name' => (is => 'ro', isa => 'Str');
+
+around 'BUILDARGS' => sub {
+  my $orig = shift;
+  my $class = shift;
+  return $class->$orig({ map { $_ => shift } qw(file_name arguments results)});
+};
+
+sub BUILD {
+  my $self = shift;
+
+  # assert(defined($class));
+  # assert(defined($file_name));
+  # assert(defined($arguments));
+  # assert(defined($results));
+  # assert($#$arguments >= 0);
+  # assert($#$results >= 0);
   my %extension;
-  my($self) = fields::new($class);
-  $self->SUPER::new(undef, $arguments, $results, \%extension);
-  $self->{file_name} = $file_name;
-
   my %positions;
   
-  map { $positions{$arguments->[$_]} = $_ } (0..$#$arguments);
-  map { $positions{$results->[$#$arguments + $_]} = $#$arguments + $_ + 1} (0..$#$results);
+  map { $positions{$self->arguments->[$_]} = $_ } (0..$#{$self->arguments});
+  map { $positions{$self->results->[$_]} = $#{$self->arguments} + $_ + 1} (0..$#{$self->results});
   
-  if (open(my $FILE, '<', $file_name)) {
+  if (open(my $FILE, '<', $self->file_name)) {
     while (<$FILE>) {
       chomp;
       my(@fields) = split /\|/;
       my %line;
-      @line{@{$arguments}, @{$results}} = @fields;
-      $extension{join("/", @fields[0..$#$arguments])} = \%line;
+      @line{@{$self->arguments}, @{$self->results}} = @fields;
+      $extension{join("/", @fields[0..$#{$self->arguments}])} = \%line;
     }
-    close(FILE);
+    close($FILE);
   }
 
-  return $self;
+  $self->extension(\%extension);
 }
 
 sub receive {
   my($self, $other) = @_;
 
-  open(my $FILE, '>', $self->{file_name}) || die;
+  open(my $FILE, '>', $self->file_name) || die;
   foreach my $item (values %{$other->{extension}}) {
-    print $FILE join("|", map { defined($item->{$_}) ? $item->{$_} : '' } (@{$self->{arguments}}, @{$self->{results}})), "\n";
+    print $FILE join("|", map { defined($item->{$_}) ? $item->{$_} : '' } (@{$self->arguments}, @{$self->results})), "\n";
   }
   close($FILE);
 }
   
+no Moose;
+__PACKAGE__->meta->make_immutable;
 1;

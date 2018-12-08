@@ -59,15 +59,15 @@ sub compare {
   my($self, $other) = @_;
   die unless $#{$self->arguments} == $#{$other->arguments};
   die unless $#{$self->results} == $#{$other->results};
-  my @a = @{$self->arguments};
-  my @b = @{$other->arguments};
+  my @a = sort @{$self->arguments};
+  my @b = sort @{$other->arguments};
   while (@a) {
-    die unless (shift @a) eq (shift @b);
+    die "@a, @b" unless (shift @a) eq (shift @b);
   }
-  @a = @{$self->results};
-  @b = @{$other->results};
+  @a = sort @{$self->results};
+  @b = sort @{$other->results};
   while (@a) {
-    die unless (shift @a) eq (shift @b);
+    die "@, @b" unless (shift @a) eq (shift @b);
   }
 
   my(%here, %there, %everywhere);
