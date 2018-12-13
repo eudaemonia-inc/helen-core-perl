@@ -41,17 +41,19 @@ sub BUILD {
   # assert(defined($name));
   # assert(defined($path));
 
-  my $jpath = JSON::Path->new($self->path);
+  my $jpath = defined($self->path) ? JSON::Path->new($self->path) : undef;
   
   my $result = $self->subject->get($self->name);
   my(%results, %extension);
   
-  foreach my $item ($jpath->values($result)) {
-    $extension{join("/", map { $item->{$_} } @{$self->arguments})} = $item;
-    @results{keys %{$item}} = ();
+  if (defined($jpath)) {
+    foreach my $item ($jpath->values($result)) {
+      $extension{join("/", map { $item->{$_} } @{$self->arguments})} = $item;
+      @results{keys %{$item}} = ();
+    }
   }
 	 
-  map { delete $results{$_} } @{$self->arguments};
+  map { delete $results{$_} } @{$self->arguments} if defined $self->arguments;
 
   $self->results([ keys %results ]);
   $self->extension(\%extension);

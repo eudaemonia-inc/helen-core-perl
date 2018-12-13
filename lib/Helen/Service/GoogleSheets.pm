@@ -30,13 +30,7 @@ around 'BUILDARGS' => sub {
   return $class->$orig(subject => $subject, uri => 'https://sheets.googleapis.com/v4');
 };
   
-sub BUILD {
-  my $self = shift;
-  $self->pagination(undef);
-  return;
-}
-
-sub authorization {
+sub authorization_headers {
   my $self = shift;
   return { Authorization => "Bearer ".$self->subject->bearer_token->{$self->subject} };
 }

@@ -13,31 +13,29 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-package Helen::Service::Smartsheet;
+package Helen::Service::Targetprocess;
 use strict;
 use warnings;
-use version; our $VERSION = version->declare('v0.0.1');
+use version 0.77; our $VERSION = version->declare('v0.0.1');
 use Moose;
+use Carp::Assert;
 use namespace::autoclean;
-use JSON::API;
-use Helen::Service::Oauth;
 use parent 'Helen::Service::Json';
 
 around 'BUILDARGS' => sub {
   my $orig = shift;
   my $class = shift;
-  return $class->$orig(subject => shift, uri => 'https://api.smartsheet.com/2.0',
-		       pagination_params => { includeAll => 'true' });
+  return $class->$orig({subject => shift, uri => 'https://targetprocess.cisco.com/api/v1'});
 };
 
-sub authorization_headers {
-  my($self) = @_;
-  return { Authorization => "Bearer ".$self->subject->bearer_token->{$self->subject}};
-}
+sub authorization_params {
+  my $self = shift;
+  return { access_token => $self->subject->bearer_token->{$self->subject} };
+};
 
 sub authorize_helen {
   my($self, $code_sub) = @_;
-  $self->subject->bearer_token->{$self->subject} = &$code_sub('just get it from the smartsheet web site');
+  $self->subject->bearer_token->{$self->subject} = &$code_sub('just get it from the targetprocess web site');
   return;
 }
 

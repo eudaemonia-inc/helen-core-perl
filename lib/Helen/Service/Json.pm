@@ -32,10 +32,11 @@ has 'api' => (
 	      isa => 'Object',
 	     );
 
-has 'pagination' => (
-		    is => 'rw',
-		    isa => 'Maybe[HashRef]',
-		   );
+has 'authorization_headers' => (is => 'ro', isa => 'Maybe[HashRef]');
+
+has 'authorization_params' => (is => 'ro', isa => 'Maybe[HashRef]');
+
+has 'pagination_params' => (is => 'ro', isa => 'Maybe[HashRef]');
 
 has 'subject' => (
 		  is => 'rw',
@@ -59,13 +60,18 @@ sub get {
   my($self, $subject, $name, $params) = @_;
   my %params;
   %params = %{$params} if defined $params;
-  if (defined($self->pagination)) {
-    foreach my $param (keys %{$self->pagination}) {
-      $params{$param} = $self->pagination->{$param};
+  if (defined($self->pagination_params)) {
+    foreach my $param (keys %{$self->pagination_params}) {
+      $params{$param} = $self->pagination_params->{$param};
+    }
+  }
+  if (defined($self->authorization_params)) {
+    foreach my $param (keys %{$self->authorization_params}) {
+      $params{$param} = $self->authorization_params->{$param};
     }
   }
   
-  my $result = $self->{api}->get($name, $self->pagination, $self->authorization);
+  my $result = $self->{api}->get($name, \%params, $self->authorization_headers);
   return $result;
 }
 no Moose;

@@ -13,31 +13,33 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+package Helen::Core::Relation::Dump;
 use strict;
 use warnings;
 use version; our $VERSION = version->declare('v0.0.1');
-
-package Helen::Core::Relation::Dump;
+use Moose;
+use namespace::autoclean;
 use Carp::Assert;
 use Data::Dumper;
 use parent 'Helen::Core::Relation';
-use fields qw(file_name);
 
-sub new {
-  my($class, $file_name) = @_;
-  assert(defined($class));
-  assert(defined($file_name));
-  my($self) = fields::new($class);
-  $self->SUPER::new();
-  $self->{file_name} = $file_name;
-  return $self;
-}
+has 'file_name' => (is => 'ro', isa => 'Str');
+
+around 'BUILDARGS' => sub {
+  my $orig = shift;
+  my $class = shift;
+  return $class->$orig({ map { $_ => shift } qw(file_name)});
+};
 
 sub receive {
   my($self, $other) = @_;
 
-  open(my $FILE, '>', $self->{file_name}) || die;
+  open my $FILE, '>', $self->file_name || die "can't open ".$self->file_name." for writing dump\n";
   print $FILE Dumper($other);
   close($FILE);
 }
+
+no Moose;
+__PACKAGE__->meta->make_immutable;
 1;
