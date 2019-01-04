@@ -21,6 +21,7 @@ use Moose;
 use Carp::Assert;
 use namespace::autoclean;
 use parent 'Helen::Service::Json';
+use Data::Dumper;
 
 around 'BUILDARGS' => sub {
   my $orig = shift;
@@ -42,6 +43,29 @@ sub authorize_helen {
 sub get {
   my($self, $name, $params) = @_;
   return $self->SUPER::get($self->subject, $name, $params);
+}
+
+sub pagination_params {
+  my($self, $count) = @_;
+  if ($count > 0) {
+    return { take => 1000, skip => $count * 1000 };
+  } else {
+    return { take => 1000 };
+  }
+}
+
+sub combine_results {
+  my($self, $accum, $result) = @_;
+  if (defined($accum)) {
+    return { Items => [ @{$accum->{Items}}, @{$result->{Items}} ] };
+  } else {
+    return $result;
+  }
+}
+
+sub more_results {
+  my($self, $result) = @_;
+  return exists($result->{Next});
 }
 
 no Moose;

@@ -97,6 +97,10 @@ sub planck {
   return;
 }
 
+sub subsep {
+  return $;
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
 1;

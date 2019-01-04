@@ -26,8 +26,7 @@ use parent 'Helen::Service::Json';
 around 'BUILDARGS' => sub {
   my $orig = shift;
   my $class = shift;
-  return $class->$orig(subject => shift, uri => 'https://api.smartsheet.com/2.0',
-		       pagination_params => { includeAll => 'true' });
+  return $class->$orig(subject => shift, uri => 'https://api.smartsheet.com/2.0');
 };
 
 sub authorization_headers {
@@ -44,6 +43,10 @@ sub authorize_helen {
 sub get {
   my($self, $name, $params) = @_;
   return $self->SUPER::get($self->subject, $name, $params);
+}
+
+sub pagination_params {
+  return { includeAll => 'true' };
 }
 
 no Moose;

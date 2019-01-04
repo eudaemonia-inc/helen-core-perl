@@ -24,6 +24,7 @@ use Carp::Assert;
 use Helen::Core::Relation::REST::Json;
 use Helen::Service::Targetprocess;
 use Data::Dumper;
+use Encode qw(decode encode);
 use parent 'Helen::Core::Relation::REST::Json';
 
 has 'name' => ( is => 'ro', isa => 'Str' );
@@ -39,7 +40,6 @@ around 'BUILDARGS' => sub {
 };
 
 # problem 1: take => 1000 pagination
-# problem 2: massage CustomFields into proper attributes
 
 sub BUILD {
   my $self = shift;
@@ -50,7 +50,7 @@ sub BUILD {
   foreach my $item (values %{$self->extension}) {
     if (exists $item->{CustomFields}) {
       foreach my $field (@{$item->{CustomFields}}) {
-	$item->{$field->{Name}} = $field->{Value};
+	$item->{$field->{Name}} = $self->stringifyvalue($field->{Value});
 	$results{$field->{Name}} = () unless exists $arguments{$field->{Name}};
       }
       delete $item->{CustomFields};
@@ -63,10 +63,13 @@ sub BUILD {
 	    my $email_address = $item->{$field}->{Login};
 	    $email_address =~ s/\@cisco\.com$//;
 	    $item->{$field} = $email_address;
-	  } elsif ($resource_type eq 'EntityType') {
-	    $item->{$field} = $item->{$field}->{Name};
 	  } else {
-	    die "unknown resource type $resource_type";
+	    if (defined($item->{$field}->{Name})) {
+	      #warn "unknown resource type $resource_type";
+	      $item->{$field} = $item->{$field}->{Name};
+	    } else {
+	      die "unknown resource type $resource_type with no Name";
+	    }
 	  }
 	}
       }
@@ -76,6 +79,14 @@ sub BUILD {
   }
   $self->results([keys %results]);
   return;
+}
+
+sub stringifyvalue {
+  my($self, $value) = @_;
+  if ((ref $value eq 'HASH') && (exists $value->{Name})) {
+    return decode 'UTF-8', $value->{Name};
+  }
+  return decode 'UTF-8', $value;
 }
 
 no Moose;

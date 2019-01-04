@@ -48,7 +48,7 @@ sub BUILD {
   
   if (defined($jpath)) {
     foreach my $item ($jpath->values($result)) {
-      $extension{join("/", map { $item->{$_} } @{$self->arguments})} = $item;
+      $extension{join($self->subsep, map { $self->stringifyvalue($item->{$_}) } @{$self->arguments})} = $item;
       @results{keys %{$item}} = ();
     }
   }
@@ -58,6 +58,11 @@ sub BUILD {
   $self->results([ keys %results ]);
   $self->extension(\%extension);
   return;
+}
+
+sub stringifyvalue {
+  my($self, $value) = @_;
+  return $value;
 }
 
 no Moose;

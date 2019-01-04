@@ -52,7 +52,7 @@ sub BUILD {
   
   my %extension;
   foreach my $row (new JSON::Path('$.rows[*].cells')->values($sheet)) {
-    $extension{join("/", map { $row->[$positions{$_}]->{value} } @{$self->arguments})} =
+    $extension{join($self->subsep, map { $row->[$positions{$_}]->{value} } @{$self->arguments})} =
       { map { ($_, $row->[$positions{$_}]->{value}) } grep { exists($row->[$positions{$_}]->{value}) } (keys %positions) };
   }
 

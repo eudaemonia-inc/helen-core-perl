@@ -20,6 +20,7 @@ use version; our $VERSION = version->declare('v0.0.1');
 use Moose;
 use namespace::autoclean;
 use JSON::API;
+use Data::Dumper;
 use parent 'Helen::Service';
 
 has 'uri' => (
@@ -35,8 +36,6 @@ has 'api' => (
 has 'authorization_headers' => (is => 'ro', isa => 'Maybe[HashRef]');
 
 has 'authorization_params' => (is => 'ro', isa => 'Maybe[HashRef]');
-
-has 'pagination_params' => (is => 'ro', isa => 'Maybe[HashRef]');
 
 has 'subject' => (
 		  is => 'rw',
@@ -58,22 +57,44 @@ sub BUILD {
 
 sub get {
   my($self, $subject, $name, $params) = @_;
-  my %params;
-  %params = %{$params} if defined $params;
-  if (defined($self->pagination_params)) {
-    foreach my $param (keys %{$self->pagination_params}) {
-      $params{$param} = $self->pagination_params->{$param};
+  my $accumulated_result;
+  my $result;
+  my $count = 0;
+  do {
+    my %params;
+    %params = %{$params} if defined $params;
+    
+    foreach my $param (keys %{$self->pagination_params($count)}) {
+      $params{$param} = $self->pagination_params($count)->{$param};
     }
-  }
-  if (defined($self->authorization_params)) {
-    foreach my $param (keys %{$self->authorization_params}) {
-      $params{$param} = $self->authorization_params->{$param};
+    if (defined($self->authorization_params)) {
+      foreach my $param (keys %{$self->authorization_params}) {
+	$params{$param} = $self->authorization_params->{$param};
+      }
     }
-  }
   
-  my $result = $self->{api}->get($name, \%params, $self->authorization_headers);
+    $result = $self->{api}->get($name, \%params, $self->authorization_headers);
+    $accumulated_result = $self->combine_results($accumulated_result, $result);
+    $count++;
+  } while ($self->more_results($result));
+  
+  return $accumulated_result;
+}
+
+sub combine_results {
+  my($self, $accum, $result) = @_;
   return $result;
 }
+
+sub more_results {
+  my($self, $result) = @_;
+  return undef;
+}
+
+sub pagination_params {
+  return undef;
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
 1;

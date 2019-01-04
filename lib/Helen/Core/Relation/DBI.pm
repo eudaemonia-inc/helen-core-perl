@@ -25,6 +25,7 @@ use Carp::Assert;
 use DBI;
 use parent 'Helen::Core::Relation';
 use fields qw(dbh name);
+use Data::Dumper;
 
 has 'data_source' => (
 		      is => 'ro',
@@ -63,7 +64,7 @@ sub BUILD {
 
   $self->extension({});
   if (scalar($sth->fetchrow_array)) {
-    my $sth = $dbh->prepare("select * from ".$self->name);
+    my $sth = $dbh->prepare("select * from public.".$self->name);
     
     $sth->execute || die;
     
@@ -80,7 +81,7 @@ sub BUILD {
     @positions{@{$sth->{NAME}}} = (0..$#{$sth->{NAME}});
     my $current = $sth->fetchall_arrayref;
     foreach my $row (@$current) {
-      $self->extension->{join("/", map { $row->[$positions{$_}] } @{$self->arguments})} = { map { ($sth->{NAME}->[$_], $row->[$_]) } (0..$#$row) };
+      $self->extension->{join($self->subsep, map { $row->[$positions{$_}] } @{$self->arguments})} = { map { ($sth->{NAME}->[$_], $row->[$_]) } (0..$#$row) };
     }
   }
 
@@ -100,40 +101,47 @@ sub receive {
 
   $sth->execute || die;
 
-  my $columns = [@{$other->arguments}, @{$other->results}];
+  my %translation = ();
+  my $columns = [];
+  foreach my $column (@{$other->arguments}, @{$other->results}) {
+    my $translation = lc $column;
+    $translation =~ s/[^a-z0-9]/_/g;
+    $translation{$column} = $translation;
+    push @{$columns}, $translation;
+  }
+  my @arguments = map { $translation{$_} } @{$other->arguments};
+  my @results = map { $translation{$_} } @{$other->results};
 
   if (!scalar($sth->fetchrow_array)) {
-    $sth = $dbh->prepare("create table ".$self->{name}." (".join(", ", map "$_ varchar", @{$columns}).", primary key (".join(", ", @{$other->arguments})."))");
+    $sth = $dbh->prepare("create table ".$self->{name}." (".join(", ", map "$_ varchar", @{$columns}).", primary key (".join(", ", @arguments)."))");
     $sth->execute() || die;
   }
 
-  $sth = $dbh->prepare('select '.join(", ", @{$other->arguments}).' from '.$self->{name});
+  my $delete_sth = $dbh->prepare('delete from public.'.$self->{name}.' where '.join(" and ", map { "$_ = ?" } @arguments));
 
-  $sth->execute() || die;
+  my $update_sth = $dbh->prepare('update public.'.$self->{name}.' set '.join(", ", map "$_ = ?", @results).' where '.join(" and ", map { "$_ = ?" } @arguments));
 
-  my $current = $sth->fetchall_hashref($other->arguments);
+  my $insert_sth = $dbh->prepare('insert into public.'.$self->{name}.' ('.join(", ", @{$columns}).') values ('.join(", ", map "?", @{$columns}).')');
 
-  my $delete_sth = $dbh->prepare('delete from '.$self->{name}.' where '.join(" and ", map { "$_ = ?" } @{$other->arguments}));
-
-  my $update_sth = $dbh->prepare('update '.$self->{name}.' set '.join(", ", map "$_ = ?", @{$other->results}).' where '.join(" and ", map { "$_ = ?" } @{$other->arguments}));
-
-  my $insert_sth = $dbh->prepare('insert into '.$self->{name}.' ('.join(", ", @{$columns}).') values ('.join(", ", map "?", @{$columns}).')');
-
-  my %extension = %{$other->{extension}};
+  my %extension = ();
+  foreach my $key (keys %{$other->extension}) {
+    $extension{$key} = {};
+    foreach my $field (keys %{$other->extension->{$key}}) {
+      $extension{$key}->{$translation{$field}} = $other->extension->{$key}->{$field};
+    }
+  }
   
   map {
-    if (defined($current->{$_})) {
+    if (defined($self->extension->{$_})) {
       my $key = $_;
-      $update_sth->execute(map { $extension{$key}{$_} } (@{$other->results}, @{$other->arguments})) || die;
+      $update_sth->execute(map { $extension{$key}{$_} } (@results, @arguments)) || die;
       delete $extension{$key};
     } else {
-      $delete_sth->execute($_) || die;
+      my $subsep = $self->subsep;
+      $delete_sth->execute((split /$subsep/, $_)) || die;
     } } keys %extension;
-  
 
   map { my $key = $_; $insert_sth->execute(map { $extension{$key}{$_} } @{$columns}) || die } keys %extension;
-
-  $sth->execute() || die;
 }
   
 no Moose;

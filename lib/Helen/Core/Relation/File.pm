@@ -51,7 +51,7 @@ sub BUILD {
       my(@fields) = split /\|/;
       my %line;
       @line{@{$self->arguments}, @{$self->results}} = @fields;
-      $extension{join("/", @fields[0..$#{$self->arguments}])} = \%line;
+      $extension{join($self->subsep, @fields[0..$#{$self->arguments}])} = \%line;
     }
     close($FILE);
   }
