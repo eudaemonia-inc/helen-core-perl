@@ -21,7 +21,6 @@ use Moose;
 use namespace::autoclean;
 use Carp::Assert;
 use Passwd::Keyring::Gnome;
-use Sentinel;
 use parent 'Helen::Core::Relation::Secret';
 
 has 'agent' => (

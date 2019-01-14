@@ -57,18 +57,51 @@ sub apply {
 
 sub compare {
   my($self, $other) = @_;
-  die unless $#{$self->arguments} == $#{$other->arguments};
-  die unless $#{$self->results} == $#{$other->results};
+  my $unhandled_differences = 0;
+  if (($#{$self->arguments} != $#{$other->arguments}) ||
+      ($#{$self->results} != $#{$other->results})) {
+    $unhandled_differences = 1;
+  }
   my @a = sort @{$self->arguments};
   my @b = sort @{$other->arguments};
   while (@a) {
-    die "@a, @b" unless (shift @a) eq (shift @b);
+    my $first = shift @a;
+    my $second = shift @b;
+    next if ($first eq $second);
+    $unhandled_differences = 1;
+    if (($first cmp $second) < 0) {
+      unshift @a, $second;
+      warn "compare: field $first missing from second arg arguments";
+    } else {
+      unshift @b, $first;
+      warn "compare: field $second missing from first arg arguments";
+    }
   }
+  while (@b) {
+    $unhandled_differences = 1;
+    warn "compare: field ", shift @b, " missing from first arg arguments";
+  }
+    
   @a = sort @{$self->results};
   @b = sort @{$other->results};
   while (@a) {
-    die "@, @b" unless (shift @a) eq (shift @b);
+    my $first = shift @a;
+    my $second = shift @b;
+    next if ($first eq $second);
+    $unhandled_differences = 1;
+    if (($first cmp $second) < 0) {
+      warn "compare: field $first missing from second arg";
+      unshift @b, $second;
+    } else {
+      warn "compare: field $second missing from first arg";
+      unshift @a, $first;
+    }
   }
+  while (@b) {
+    $unhandled_differences = 1;
+    warn "compare: field ", shift @b, " missing from first arg arguments";
+  }
+  die if $unhandled_differences;
 
   my(%here, %there, %everywhere);
   @here{grep { !exists $other->{extension}->{$_} } keys %{$self->{extension}}} = 1;
