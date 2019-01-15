@@ -113,15 +113,15 @@ sub receive {
   my @results = map { $translation{$_} } @{$other->results};
 
   if (!scalar($sth->fetchrow_array)) {
-    $sth = $dbh->prepare("create table public.'".$self->{name}."' (".join(", ", map "$_ varchar", @{$columns}).", primary key (".join(", ", @arguments)."))");
+    $sth = $dbh->prepare('create table public."'.$self->{name}.'" ('.join(", ", map "$_ varchar", @{$columns}).", primary key (".join(", ", @arguments)."))");
     $sth->execute() || die;
   }
 
-  my $delete_sth = $dbh->prepare('delete from public.'.$self->{name}.' where '.join(" and ", map { "$_ = ?" } @arguments));
+  my $delete_sth = $dbh->prepare('delete from public."'.$self->{name}.'" where '.join(" and ", map { "$_ = ?" } @arguments));
 
-  my $update_sth = $dbh->prepare('update public.'.$self->{name}.' set '.join(", ", map "$_ = ?", @results).' where '.join(" and ", map { "$_ = ?" } @arguments));
+  my $update_sth = $dbh->prepare('update public."'.$self->{name}.'" set '.join(", ", map "$_ = ?", @results).' where '.join(" and ", map { "$_ = ?" } @arguments));
 
-  my $insert_sth = $dbh->prepare('insert into public.'.$self->{name}.' ('.join(", ", @{$columns}).') values ('.join(", ", map "?", @{$columns}).')');
+  my $insert_sth = $dbh->prepare('insert into public."'.$self->{name}.'" ('.join(", ", @{$columns}).') values ('.join(", ", map "?", @{$columns}).')');
 
   my %extension = ();
   foreach my $key (keys %{$other->extension}) {
