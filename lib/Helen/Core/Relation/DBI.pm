@@ -113,7 +113,7 @@ sub receive {
   my @results = map { $translation{$_} } @{$other->results};
 
   if (!scalar($sth->fetchrow_array)) {
-    $sth = $dbh->prepare("create table ".$self->{name}." (".join(", ", map "$_ varchar", @{$columns}).", primary key (".join(", ", @arguments)."))");
+    $sth = $dbh->prepare("create table public.'".$self->{name}."' (".join(", ", map "$_ varchar", @{$columns}).", primary key (".join(", ", @arguments)."))");
     $sth->execute() || die;
   }
 
