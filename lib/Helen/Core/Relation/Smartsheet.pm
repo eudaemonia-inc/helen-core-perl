@@ -20,6 +20,7 @@ use version; our $VERSION = version->declare('v0.0.1');
 use Moose;
 use namespace::autoclean;
 use Carp::Assert;
+use Data::Dumper;
 use Helen::Core::Relation::REST::Json;
 use Helen::Service::Smartsheet;
 use parent 'Helen::Core::Relation';
@@ -37,6 +38,7 @@ sub BUILD {
   my $self = shift;
 
   my $sheets = new Helen::Core::Relation::REST::Json($self->subject, 'sheets', '$.data[*]', [ 'name' ]);
+  print Dumper $sheets;
   my $sheet = $self->subject->get('sheets/'.$sheets->{extension}->{$self->name}->{id});
   my %positions;
   @positions{new JSON::Path('$.columns[*].title')->values($sheet)} = new JSON::Path('$.columns[*].index')->values($sheet);

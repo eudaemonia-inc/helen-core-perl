@@ -22,6 +22,8 @@ use namespace::autoclean;
 use Helen::Service::Oauth;
 use parent 'Helen::Service::Json';
 
+use constant name => 'GoogleSheets';
+
 around 'BUILDARGS' => sub {
   my $orig = shift;
   my $class = shift;

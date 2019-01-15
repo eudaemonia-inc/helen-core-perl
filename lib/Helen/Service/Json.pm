@@ -37,6 +37,8 @@ has 'authorization_headers' => (is => 'ro', isa => 'Maybe[HashRef]');
 
 has 'authorization_params' => (is => 'ro', isa => 'Maybe[HashRef]');
 
+has 'name' => (is => 'ro', isa => 'Str');
+
 has 'subject' => (
 		  is => 'rw',
 		  isa => 'Object',

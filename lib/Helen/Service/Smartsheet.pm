@@ -23,6 +23,8 @@ use JSON::API;
 use Helen::Service::Oauth;
 use parent 'Helen::Service::Json';
 
+use constant name => 'Smartsheet';
+
 around 'BUILDARGS' => sub {
   my $orig = shift;
   my $class = shift;
@@ -31,12 +33,12 @@ around 'BUILDARGS' => sub {
 
 sub authorization_headers {
   my($self) = @_;
-  return { Authorization => "Bearer ".$self->subject->bearer_token->{$self->subject}};
+  return { Authorization => "Bearer ".$self->subject->bearer_token->{$self}};
 }
 
 sub authorize_helen {
   my($self, $code_sub) = @_;
-  $self->subject->bearer_token->{$self->subject} = &$code_sub('just get it from the smartsheet web site');
+  $self->subject->bearer_token->{$self} = &$code_sub('just get it from the smartsheet web site');
   return;
 }
 

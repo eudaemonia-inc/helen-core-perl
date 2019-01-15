@@ -23,6 +23,8 @@ use namespace::autoclean;
 use parent 'Helen::Service::Json';
 use Data::Dumper;
 
+use constant name => 'Targetprocess';
+
 around 'BUILDARGS' => sub {
   my $orig = shift;
   my $class = shift;
@@ -31,12 +33,12 @@ around 'BUILDARGS' => sub {
 
 sub authorization_params {
   my $self = shift;
-  return { access_token => $self->subject->bearer_token->{$self->subject} };
+  return { access_token => $self->subject->bearer_token->{$self} };
 };
 
 sub authorize_helen {
   my($self, $code_sub) = @_;
-  $self->subject->bearer_token->{$self->subject} = &$code_sub('just get it from the targetprocess web site');
+  $self->subject->bearer_token->{$self} = &$code_sub('just get it from the targetprocess web site');
   return;
 }
 
