@@ -76,6 +76,7 @@ sub get {
     }
   
     $result = $self->{api}->get($name, \%params, $self->authorization_headers);
+    die $self->{api}->errstr unless $self->{api}->was_success;
     $accumulated_result = $self->combine_results($accumulated_result, $result);
     $count++;
   } while ($self->more_results($result));

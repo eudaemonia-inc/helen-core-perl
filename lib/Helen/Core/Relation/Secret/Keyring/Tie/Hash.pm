@@ -36,7 +36,7 @@ sub STORE {
 sub FETCH {
   my($self, $key) = @_;
   if (ref $key) {
-    return $self->{keyring}->get_password($key->name, $self->{what}) // '';
+    return $self->{keyring}->get_password($self->{what}, $key->name) // '';
   } else {
     return $self->{$key};
   }
