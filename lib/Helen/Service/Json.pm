@@ -76,6 +76,7 @@ sub get {
     }
   
     $result = $self->{api}->get($name, \%params, $self->authorization_headers);
+    # ~~~ error handling
     die $self->{api}->errstr unless $self->{api}->was_success;
     $accumulated_result = $self->combine_results($accumulated_result, $result);
     $count++;
@@ -95,7 +96,7 @@ sub more_results {
 }
 
 sub pagination_params {
-  return undef;
+  return {};
 }
 
 no Moose;

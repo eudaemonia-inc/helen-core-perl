@@ -30,7 +30,7 @@ has 'path' => (is => 'ro', isa => 'Str');
 around 'BUILDARGS' => sub {
   my $orig = shift;
   my $class = shift;
-  return $class->$orig({map {$_ => shift } qw(subject name path arguments)});
+  return $class->$orig({map {$_ => shift } qw(subject name path arguments results)});
 };
 
 sub BUILD {
@@ -48,8 +48,14 @@ sub BUILD {
   
   if (defined($jpath)) {
     foreach my $item ($jpath->values($result)) {
-      $extension{join($self->subsep, map { $self->stringifyvalue($item->{$_}) } @{$self->arguments})} = $item;
-      @results{keys %{$item}} = ();
+      if (ref $item eq 'HASH') {
+	$extension{join($self->subsep, map { $self->stringifyvalue($item->{$_}) } @{$self->arguments})} = $item;
+	@results{keys %{$item}} = ();
+      } elsif (ref $item eq 'ARRAY') {
+	my %hash;
+	@hash{@{$self->arguments},@{$self->results}} = @{$item};
+	$extension{join($self->subsep, map { $self->stringifyvalue($_) } @{$item}[0..$#{$self->arguments}])} = \%hash;
+      }
     }
   }
 	 

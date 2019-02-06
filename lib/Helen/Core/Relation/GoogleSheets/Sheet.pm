@@ -25,13 +25,15 @@ use Helen::Service::GoogleSheets;
 use Helen::Core::Relation::REST::Json;
 use parent 'Helen::Core::Relation::REST::Json';
 
+# ~~~ This is hardcoded to a particular spreadsheet for now.
+# ~~~ todo: option of getting field names from top row instead of skipping it
 around 'BUILDARGS' => sub {
   my $orig = shift;
   my $class = shift;
-  my $subject = new Helen::Service::GoogleSheets(shift);
+  my $subject = Helen::Service::GoogleSheets->new(shift);
   my $name = 'spreadsheets/11FCFgLhT-0f82qlZrOI0PzKrZoVIsAZnWRLlGNiwBOQ/values/'.shift;
   #my $name = 'spreadsheets'; shift;
-  return $class->$orig({ subject => $subject, name => $name, path => '$..*', map { $_ => shift } qw(arguments)});
+  return $class->$orig({ subject => $subject, name => $name, path => '$.values[1:]', map { $_ => shift } qw(arguments results)});
 };
 
 sub BUILD {

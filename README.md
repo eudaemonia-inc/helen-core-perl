@@ -17,3 +17,12 @@ This will either give you a URL to visit from which you need to get
 the access token from the URL you are redirected to after granting
 access or prompt you to input the access token generated from the web
 site, depending on how the web app does it.
+
+--- roadmap, linux desktop appliance version ---
+
+With a single command, I should be able to bootstrap a VM and have it ask me for its name and my name
+and have it connect to the cloud and start monitoring queue counts.
+
+I need to start documenting what the actual interface is to the Perl modules.
+
+I need a bug tracking system and the first bug is to update the copyright notices.

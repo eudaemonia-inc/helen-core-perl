@@ -47,10 +47,6 @@ sub get {
   my($self, $name, $params) = @_;
   return $self->SUPER::get($self->subject, $name, $params);
 }
-
-sub name {
-  return 'google-sheets';
-}
 no Moose;
 __PACKAGE__->meta->make_immutable;
 1;
