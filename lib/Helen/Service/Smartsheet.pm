@@ -16,7 +16,7 @@
 package Helen::Service::Smartsheet;
 use strict;
 use warnings;
-use version; our $VERSION = version->declare('v0.0.1');
+use version; our $VERSION = "v0.0.1";
 use Moose;
 use namespace::autoclean;
 use JSON::API;

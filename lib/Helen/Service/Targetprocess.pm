@@ -16,7 +16,7 @@
 package Helen::Service::Targetprocess;
 use strict;
 use warnings;
-use version 0.77; our $VERSION = version->declare('v0.0.1');
+use version 0.77; our $VERSION = "v0.0.1";
 use Moose;
 use Carp::Assert;
 use namespace::autoclean;
