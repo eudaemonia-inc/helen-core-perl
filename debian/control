@@ -1,0 +1,15 @@
+Source: helen-core-perl
+Section: libs
+Priority: optional
+Maintainer: Mark Buda <hermit@acm.org>
+Build-Depends: debhelper (>= 10)
+Standards-Version: 4.1.2
+#Homepage: <insert the upstream URL, if relevant>
+Vcs-Git: https://github.com/eudaemonia-inc/helen-core-perl.git
+Vcs-Browser: https://github.com/eudaemonia-inc/helen-core-perl.git
+
+Package: helen-core-perl
+Architecture: all
+Depends: ${misc:Depends}
+Description: Helen's core Perl modules
+ I'll explain later.
