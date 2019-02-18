@@ -39,10 +39,7 @@ has 'authorization_params' => (is => 'ro', isa => 'Maybe[HashRef]');
 
 has 'name' => (is => 'ro', isa => 'Str');
 
-has 'subject' => (
-		  is => 'rw',
-		  isa => 'Object',
-		 );
+has 'subject' => (is => 'rw', isa => 'Object');
 
 around 'BUILDARGS' => sub {
   my $orig = shift;

@@ -37,12 +37,13 @@ has 'code' => (
 has 'keyring' => (
 		  is => 'rw',
 		  isa => 'Helen::Core::Relation::Secret::Keyring',
-		  handles => [qw(client_id client_secret)],
+		  handles => [qw(bearer_token client_id client_secret)],
 		 );
 
 has 'bearer_token' => (
-		  is => 'rw',
-		 );
+		       is => 'rw',
+		       isa => 'HashRef'
+		      );
 
 around 'BUILDARGS' => sub {
   my $orig = shift;

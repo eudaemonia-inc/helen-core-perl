@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Eudaemonia Inc
+# Copyright (C) 2019  Eudaemonia Inc
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,40 +13,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-package Helen::Service::GoogleSheets;
+
+package Helen::Service::Mint;
 use strict;
 use warnings;
-use version; our $VERSION = version->declare('v0.0.1');
+use version 0.77; our $VERSION = version->declare('v0.0.1');
 use Moose;
 use namespace::autoclean;
-use Helen::Service::Oauth;
-use parent 'Helen::Service::Json';
-
-use constant name => 'GoogleSheets';
+use Carp::Assert;
 
 around 'BUILDARGS' => sub {
   my $orig = shift;
   my $class = shift;
-  my $subject = Helen::Service::Oauth->new('Google', 'https://www.eudaemonia.org/helen/auth/',
-					   'https://www.googleapis.com/auth/spreadsheets.readonly', shift);
-  return $class->$orig(subject => $subject, uri => 'https://sheets.googleapis.com/v4');
+  return $class->$orig({map {$_ => shift } qw()});
 };
-  
-sub authorization_headers {
-  my $self = shift;
-  return { Authorization => "Bearer ".$self->subject->bearer_token->{$self} };
-}
 
 sub authorize_helen {
   my($self, $code_sub) = @_;
-  $self->subject->authorize_helen($code_sub);
-  return;
+  &$code_sub('Enter your mint.com password:');
 }
 
-sub get {
-  my($self, $name, $params) = @_;
-  return $self->SUPER::get($self->subject, $name, $params);
-}
 no Moose;
 __PACKAGE__->meta->make_immutable;
 1;
