@@ -1,0 +1,94 @@
+; -*- org -*-
+#+BEGIN_SRC perl :tangle RailsModel.pm :noweb yes
+        # Copyright (C) 2018  Eudaemonia Inc
+        #
+        # This program is free software: you can redistribute it and/or modify
+        # it under the terms of the GNU General Public License as published by
+        # the Free Software Foundation, either version 3 of the License, or
+        # (at your option) any later version.
+        #
+        # This program is distributed in the hope that it will be useful,
+        # but WITHOUT ANY WARRANTY; without even the implied warranty of
+        # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+        # GNU General Public License for more details.
+        #
+        # You should have received a copy of the GNU General Public License
+        # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+        package Helen::Core::Relation::RailsModel;
+        use strict;
+        use warnings;
+        use version 0.77;
+        our $VERSION = "v0.0.3";
+
+        use Moose;
+        use Inline 'Ruby';
+        use Carp::Assert;
+        use Data::Dumper;
+        use parent 'Helen::Core::Relation';
+
+        use Inline 'Ruby' => 'require "enc/encdb.so"';
+        use Inline 'Ruby' => 'require "rails"';
+        use Inline 'Ruby' => 'require "rails/generators"';
+        has 'app_directory' => ( is => 'ro', isa => 'Object' );
+        has 'name' => ( is => 'ro', isa => 'Str' );
+        
+        around 'BUILDARGS' => sub {
+          my $orig = shift;
+          my $class = shift;
+          return $class->$orig({ map { $_ => shift } qw(app_directory name arguments results)});
+      };
+
+        sub BUILD {
+          my Helen::Core::Relation::RailsModel $self = shift;
+
+          # assert(defined($app_directory), 'app_directory is provided');
+          # assert(defined($name), 'name is provided');
+          # assert(!defined($arguments), 'arguments are not provided');
+          # assert(!defined($results), 'results are not provided');
+
+          my %extension;
+          $self->extension(\%extension);
+          return;
+        }
+
+        sub receive {
+          my($self, $other) = @_;
+  #        chdir $other->path || die;
+          use Inline 'Ruby' => 'Rails::Generators.invoke("active_record:model", ["test"], behavior: :invoke)';
+  #        print "model:\n";
+  #        print Dumper(%Helen::Core::Relation::RailsModel::);
+        }
+        
+        no Moose;
+        __PACKAGE__->meta->make_immutable;
+        1;
+      __DATA__
+      __Ruby__
+      <<ruby>>
+#+END_SRC
+#+NAME: ruby
+#+BEGIN_SRC ruby
+  module Raven
+    module Core
+      module Relation
+        class RailsModel
+          def initialize(app_directory, name, arguments, results)
+            @perl = Helen::Core::Relation::RailsModelPerlHelper.new(app_directory, name, arguments, results)
+          end
+          
+          def rubymethod
+            puts "yay"
+          end
+          
+          def receive(other)
+            puts "yay"
+          end
+        end
+      end
+    end
+  end
+  puts "Ruby data section evaluated"
+
+#+END_SRC
