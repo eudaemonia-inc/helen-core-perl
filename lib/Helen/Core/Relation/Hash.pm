@@ -16,7 +16,9 @@
 package Helen::Core::Relation::Hash;
 use strict;
 use warnings;
-use version; our $VERSION = "v0.0.1";
+use version 0.77;
+our $VERSION = 'v0.0.3';
+
 use Moose;
 use Carp::Assert;
 use parent 'Helen::Core::Relation';
