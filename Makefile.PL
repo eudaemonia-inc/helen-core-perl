@@ -2,7 +2,7 @@ use ExtUtils::MakeMaker;
 
 package MY;
 
-our $org_pm_dir = 'lib/Helen/Core/Relation';
+our $org_pm_dir = 'Helen/Core/Relation';
 our @org_pms = qw(Mint.pm RailsModel.pm);
 
 sub libscan {
@@ -18,8 +18,10 @@ sub init_PM {
   my $self = shift;
   my $ret = $self->SUPER::init_PM(@_);
   foreach my $pm (@org_pms) {
-    my $path = $self->catfile($org_pm_dir, $pm);
-    $self->{PM}{$path} = $path;
+    my $path = $self->catfile('lib', $org_pm_dir, $pm);
+    my $inst = $self->catfile($self->{INST_LIB},$org_pm_dir, $pm);
+    print "libscan($path) => '$inst'\n" if ($Verbose >= 2);
+    $self->{PM}{$path} = $inst;
   }
   return $ret;
 }
@@ -35,7 +37,7 @@ sub special_targets {
 
 clean ::
 FRAGGLE_ROCK
-  $make_frag .= join("", map { "\t\$(RM_F) ".$self->catfile($org_pm_dir, $_)."\n" } @org_pms);
+  $make_frag .= join("", map { "\t\$(RM_F) ".$self->catfile('lib', $org_pm_dir, $_)."\n" } @org_pms);
   return $make_frag;
 }
 
