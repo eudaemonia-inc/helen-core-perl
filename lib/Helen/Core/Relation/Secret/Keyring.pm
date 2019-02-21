@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Eudaemonia Inc
+# Copyright (C) 2018, 2019  Eudaemonia Inc
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,36 +24,44 @@ use Carp::Assert;
 use Passwd::Keyring::Gnome;
 use parent 'Helen::Core::Relation::Secret';
 
-has 'agent' => (
-		is => 'ro',
-		isa => 'Helen::Core::Agent',
-	      );
-
 has 'keyring' => (
 		  is => 'rw',
 		  isa => 'Object',
+		  lazy => 1,
+		  default => sub {
+		    return Passwd::Keyring::Gnome->new(group => 'Helen::Core');
+		  },
 		  handles => [qw(get_password set_password)],
 		 );
 
 around 'BUILDARGS' => sub {
   my $orig = shift;
   my $class = shift;
-  return $class->$orig(agent => shift);
+  return $class->$orig();
 };
 
-sub BUILD {
-  my $self = shift;
-  $self->keyring(new Passwd::Keyring::Gnome(group => 'Helen::Core'));
+sub has_secret {
+  my($name) = @_;
+  has($name, is => 'rw', traits => ['Hash'], lazy => 1,
+      default => sub {
+	my $self = shift;
+	my %hash;
+	tie %hash, 'Helen::Core::Relation::Secret::Keyring::Tie::Hash', $self->keyring, $name;
+	return \%hash;
+      });
 }
 
-sub client_id {
-  my($self, $service) = @_;
-  return $self->keyring->get_password("client-id", $service->name);
-}
+has_secret 'client_secret';
 
-sub client_secret {
+sub AUTOLOAD {
   my($self, $service) = @_;
-  return $self->keyring->get_password("client-secret", $service->name);
+  assert(defined($service));
+  my $hash = $self->{hashes}->{$service->name};
+  if (defined($hash)) {
+    return $hash;
+  } else {
+    return $self->{hashes}->{$service->name} = {};
+  }
 }
 
 no Moose;

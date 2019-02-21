@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Eudaemonia Inc
+# Copyright (C) 2018, 2019  Eudaemonia Inc
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,32 +24,38 @@ use namespace::autoclean;
 use Carp::Assert;
 use LWP::Authen::OAuth2;
 use JSON;
+use Try::Tiny;
 
 has 'provider' => (is => 'ro', isa => 'Str');
 has 'uri' => (is => 'ro', isa => 'Str');
 has 'scope' => (is => 'ro', isa => 'Str');
 has 'subject' => (is => 'ro', isa => 'Object', handles => [qw(bearer_token)]);
+has 'client_id' => (is => 'ro', isa => 'Str');
 has 'oauth2' => (is => 'rw', isa => 'Object');
-
-
 
 around 'BUILDARGS' => sub {
   my $orig = shift;
   my $class = shift;
-  return $class->$orig({ map { $_ => shift } qw(provider uri scope subject)});
+  return $class->$orig({ map { $_ => shift } qw(provider uri scope client_id subject)});
 };
 
 sub BUILD {
   my $self = shift;
 
-  $self->oauth2(LWP::Authen::OAuth2->new(
-					 client_id => $self->subject->client_id($self),
-					 client_secret => $self->subject->client_secret($self),
-					 service_provider => $self->provider,
-					 redirect_uri => $self->uri,
-					 save_tokens => \&save_tokens,
-					 save_tokens_args => [$self]
-					));
+  try {
+    my $keyring = Helen::Core::Relation::Secret::Keyring->new();
+    my $oauth2 = LWP::Authen::OAuth2->new(
+					  client_id => $self->client_id,
+					  client_secret => $keyring->client_secret->{$self->name},
+					  service_provider => $self->provider,
+					  redirect_uri => $self->uri,
+					  save_tokens => \&save_tokens,
+					  save_tokens_args => [$self]
+					 );
+    $self->oauth2($oauth2);
+  } catch {
+    warn "oh well: $_";
+  };
   return;
 }
 
@@ -62,6 +68,8 @@ sub save_tokens {
 
 sub authorize_helen {
   my $self = shift;
+  assert($self);
+  assert($self->oauth2);
   my $code_sub = shift;
   my $thing = &$code_sub($self->oauth2->authorization_url(scope => $self->scope));
   $self->subject->code->{$self} = $thing;

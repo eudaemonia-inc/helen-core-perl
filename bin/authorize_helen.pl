@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# Copyright (C) 2018  Eudaemonia Inc
+# Copyright (C) 2018, 2019  Eudaemonia Inc
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,7 +30,8 @@ die "illegal service name $service_name\n" unless $service_name =~ /^[A-Za-z0-9_
 die "can't load service $service_name\n" unless load_class("Helen::Service::$service_name");
 
 my $identity = Helen::Core::Agent->new($email_address);
-my $service = eval "Helen::Service::$service_name->new(\$identity);";
+my $service = eval "Helen::Service::$service_name->new(\$identity);" || die "$!";
+
 $service->authorize_helen(sub {
 			   my($url) = shift;
 			   print "URL: $url\n";

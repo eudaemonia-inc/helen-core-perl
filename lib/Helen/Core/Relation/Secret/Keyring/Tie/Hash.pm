@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Eudaemonia Inc
+# Copyright (C) 2018, 2019  Eudaemonia Inc
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,26 +20,32 @@ our $VERSION = 'v0.0.3';
 
 package Helen::Core::Relation::Secret::Keyring::Tie::Hash;
 require Tie::Hash;
+use Carp::Assert;
 use parent -norequire, 'Tie::StdHash';
 
 sub TIEHASH {
   my $self = shift;
   my($keyring, $what) = @_;
+  assert($keyring);
+  assert($what);
   my $thing = bless { keyring => $keyring, what => $what }, $self;
   return $thing;
 }
 
 sub STORE {
   my($self, $key, $value) = @_;
+  assert($self->{keyring});
+  assert($self->{what});
   $self->{keyring}->set_password($self->{what}, $value, $key->name);
 }
 
 sub FETCH {
   my($self, $key) = @_;
+  assert($self->{keyring});
   if (ref $key) {
     return $self->{keyring}->get_password($self->{what}, $key->name) // '';
   } else {
-    return $self->{$key};
+    return $self->{keyring}->get_password($self->{what}, $key) // '';
   }
 }
 
