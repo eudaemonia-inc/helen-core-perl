@@ -17,7 +17,7 @@
 package Helen::Exception::Runtime;
 use strict;
 use warnings;
-use version 0.77; our $VERSION = version->declare('v0.0.3');
+use version 0.77; our $VERSION = version->declare('v0.0.4');
 use Moose;
 use namespace::autoclean;
 use Carp::Assert;

@@ -18,7 +18,7 @@ use strict;
 use warnings;
 use fields;
 use version 0.77;
-our $VERSION = 'v0.0.3';
+our $VERSION = 'v0.0.4';
 
 sub new {
   my $self = shift;
