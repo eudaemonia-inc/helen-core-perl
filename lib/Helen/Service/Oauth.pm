@@ -29,9 +29,10 @@ use Try::Tiny;
 has 'provider' => (is => 'ro', isa => 'Str');
 has 'uri' => (is => 'ro', isa => 'Str');
 has 'scope' => (is => 'ro', isa => 'Str');
-has 'subject' => (is => 'ro', isa => 'Object', handles => [qw(bearer_token)]);
+has 'subject' => (is => 'ro', isa => 'Object', handles => [qw(bearer_token client_secret)]);
 has 'client_id' => (is => 'ro', isa => 'Str');
 has 'oauth2' => (is => 'rw', isa => 'Object');
+has 'subservice' => (is => 'ro', isa => 'Object');
 
 around 'BUILDARGS' => sub {
   my $orig = shift;
@@ -62,7 +63,8 @@ sub BUILD {
 sub save_tokens {
   my($tokens, $self) = @_;
   $tokens = decode_json $tokens;
-  $self->subject->bearer_token->{$self} = $tokens->{access_token};
+  $self->subject->bearer_token->{$self->subservice} = $tokens->{access_token};
+  print "saving tokens!\n";
   return;
 }
 
@@ -71,15 +73,17 @@ sub authorize_helen {
   assert($self);
   assert($self->oauth2);
   my $code_sub = shift;
+  my $subservice = shift;
   my $thing = &$code_sub($self->oauth2->authorization_url(scope => $self->scope));
   $self->subject->code->{$self} = $thing;
+  $self->subject->client_secret($subservice->client_secret);
   $self->get_token;
   return;
 }
 
 sub get_token {
   my $self = shift;
-  $self->oauth2->request_tokens(code => $self->subject->code->{$self});
+  $self->oauth2->request_tokens(code => $self->subject->code->{$self}, client_secret => $self->subject->client_secret->{$self});
   return $self->oauth2->token_string;
 }
 

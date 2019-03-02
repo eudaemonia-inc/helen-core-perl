@@ -52,6 +52,9 @@ sub has_secret {
 }
 
 has_secret 'bearer_token';
+has_secret 'client_secret';
+has_secret 'code';
+has_secret 'password';
 
 around 'BUILDARGS' => sub {
   my $orig = shift;
@@ -62,10 +65,6 @@ around 'BUILDARGS' => sub {
 sub BUILD {
   my $self = shift;
   $self->keyring(Helen::Core::Relation::Secret::Keyring->new);
-
-  my %hash;
-  tie %hash, 'Helen::Core::Relation::Secret::Keyring::Tie::Hash', $self->{keyring}, "code";
-  $self->code(\%hash);
   return;
 }
 

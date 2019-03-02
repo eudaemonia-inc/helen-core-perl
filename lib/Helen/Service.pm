@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Eudaemonia Inc
+# Copyright (C) 2018, 2019  Eudaemonia Inc
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,6 +22,31 @@ our $VERSION = 'v0.0.3';
 use Moose;
 use namespace::autoclean;
 
+sub authorize_helen {
+  #** @method public authorize_helen (code_sub, subservice)
+  #
+  # @param[in] code_sub Callback to get access token
+  # @param[in] subservice Optional subservice to authorize
+  #
+  # When Helen is being authorized to access a service on behalf of an
+  # agent, this code ref is given a prompt string as an argument and
+  # is expected to return a string to be stored and used as the access
+  # token for the service.
+  #
+  # Targetprocess and Smartsheet use this to give the subject agent a
+  # bearer token for itself.
+  #
+  # Oauth uses this to give the subject agent a code for itself.
+  #
+  # Google uses this to give the subject agent a client secret.
+  #
+  # GoogleSheets delegates this to Oauth.
+  #
+  # Mint needs to use this to give the subject a password.
+  #
+  #*
+};
+  
 no Moose;
 __PACKAGE__->meta->make_immutable;
 1;

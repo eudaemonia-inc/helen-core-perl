@@ -18,6 +18,8 @@ use strict;
 use warnings;
 use Class::Load ':all';
 use Helen::Core::Agent;
+use Syntax::Keyword::Try;
+use Data::Dumper;
 
 if (@ARGV != 2) {
   die "usage: $0 email-address service-name\n";
@@ -32,11 +34,15 @@ die "can't load service $service_name\n" unless load_class("Helen::Service::$ser
 my $identity = Helen::Core::Agent->new($email_address);
 my $service = eval "Helen::Service::$service_name->new(\$identity);" || die "$!";
 
-$service->authorize_helen(sub {
-			   my($url) = shift;
-			   print "URL: $url\n";
-			   print "Please go to the above url (or otherwise follow instructions) and enter the returned code: ";
-			   my $code = <>;
-			   chomp $code;
-			   return $code;
-			 });
+try {
+  $service->authorize_helen(sub {
+			      my($url) = shift;
+			      print "URL: $url\n";
+			      print "Please go to the above url (or otherwise follow instructions) and enter the returned code: ";
+			      my $code = <>;
+			      chomp $code;
+			      return $code;
+			    });
+} catch {
+  print Dumper $@;
+}

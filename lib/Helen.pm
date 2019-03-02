@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Eudaemonia Inc
+# Copyright (C) 2018, 2019  Eudaemonia Inc
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,4 +21,12 @@ use version 0.77;
 our $VERSION = 'v0.0.3';
 
 use namespace::autoclean;
+use parent 'Exporter';
+
+use Helen::RuntimeError;
+
+our @EXPORT = qw(*RuntimeError);
+
+*{RuntimeError::} = \*{Helen::RuntimeError::};
+
 1;

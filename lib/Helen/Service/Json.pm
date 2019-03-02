@@ -21,6 +21,7 @@ our $VERSION = 'v0.0.3';
 
 use Moose;
 use namespace::autoclean;
+use Helen;
 use JSON::API;
 use Data::Dumper;
 use parent 'Helen::Service';
@@ -75,8 +76,8 @@ sub get {
     }
   
     $result = $self->{api}->get($name, \%params, $self->authorization_headers);
-    # ~~~ error handling
-    die $self->{api}->errstr unless $self->{api}->was_success;
+
+    RuntimeError->throw({message => $self->{api}->errstr, context => $self}) unless $self->{api}->was_success;
     $accumulated_result = $self->combine_results($accumulated_result, $result);
     $count++;
   } while ($self->more_results($result));

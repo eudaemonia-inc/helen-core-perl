@@ -21,22 +21,27 @@ our $VERSION = 'v0.0.3';
 
 use Moose;
 use namespace::autoclean;
-use Helen::Service::Oauth;
+use Helen::Service::Google;
 use parent 'Helen::Service::Json';
 use Carp::Assert;
 
 use constant name => 'GoogleSheets';
 
+has 'subject' => (is => 'rw', isa => 'Object', handles => [qw(bearer_token client_secret)]);
+
 around 'BUILDARGS' => sub {
   my $orig = shift;
   my $class = shift;
-  my $subject = Helen::Service::Oauth->new('Google', 'https://www.eudaemonia.org/helen/auth/',
-					   'https://www.googleapis.com/auth/spreadsheets.readonly',
-					   '946335429559-bvssbfifn8upug93fcmnfub6e1bvo552.apps.googleusercontent.com',
-					   shift);
-  return $class->$orig(subject => $subject, uri => 'https://sheets.googleapis.com/v4');
+  return $class->$orig(subject => shift,
+		       uri => 'https://sheets.googleapis.com/v4');
 };
   
+sub BUILD {
+  my $self = shift;
+  $self->subject(Helen::Service::Google->new($self->subject, $self));
+  return;
+}
+
 sub authorization_headers {
   my $self = shift;
   assert($self);

@@ -35,6 +35,18 @@ sub special_targets {
 .org.pm:
 	org-babel-tangle $<
 
+all :: doc
+
+.PHONY: tags
+
+tags: TAGS
+
+TAGS:
+	ctags -eR .
+
+doc ::
+	doxygen
+
 clean ::
 FRAGGLE_ROCK
   $make_frag .= join("", map { "\t\$(RM_F) ".$self->catfile('lib', $org_pm_dir, $_)."\n" } @org_pms);
@@ -44,6 +56,7 @@ FRAGGLE_ROCK
 package main;
 
 WriteMakefile(
-    NAME            => 'Helen',
-    VERSION_FROM    => 'lib/Helen.pm'
-    );
+	      NAME            => 'Helen',
+	      VERSION_FROM    => 'lib/Helen.pm',
+	      clean           => { FILES => [ "_Inline", "chromedriver", "doc", "TAGS" ] }
+	     );
