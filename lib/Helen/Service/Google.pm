@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-package Helen::Service::Mint;
+package Helen::Service::Google;
 use strict;
 use warnings;
 use version 0.77;
@@ -22,24 +22,29 @@ our $VERSION = 'v0.0.4';
 
 use Moose;
 use namespace::autoclean;
+use Helen::Service::Oauth;
+use parent 'Helen::Service::Oauth';
 use Carp::Assert;
-use parent 'Helen::Service';
 
-has 'subject' => (is => 'rw', isa => 'Object', handles => [qw(name password)]);
+use constant name => 'Google';
 
 around 'BUILDARGS' => sub {
   my $orig = shift;
   my $class = shift;
-  return $class->$orig({map {$_ => shift } qw(subject)});
+  return $class->$orig({provider => name,
+			uri => 'https://www.eudaemonia.org/helen/auth/',
+			scope => 'https://www.googleapis.com/auth/spreadsheets.readonly',
+			client_id => '946335429559-bvssbfifn8upug93fcmnfub6e1bvo552.apps.googleusercontent.com',
+			map {$_ => shift } qw(subject subservice)});
 };
 
 sub authorize_helen {
   my($self, $code_sub) = @_;
-  $self->subject->password->{$self} = &$code_sub('Enter your mint.com password:');
+  $self->subject->client_secret->{$self} = &$code_sub('Enter the client_secret for the Helen::Core web application:');
+  $self->subject->client_secret->{$self->subservice} = $self->subject->client_secret->{$self};
+  $self->SUPER::authorize_helen($code_sub, $self->subservice);
   return;
 }
-
 no Moose;
 __PACKAGE__->meta->make_immutable;
 1;
-__DATA__

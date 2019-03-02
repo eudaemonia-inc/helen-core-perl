@@ -1,5 +1,5 @@
 #!/usr/bin/env perl
-# Copyright (C) 2018  Eudaemonia Inc
+# Copyright (C) 2018, 2019  Eudaemonia Inc
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,6 +18,8 @@ use strict;
 use warnings;
 use Class::Load ':all';
 use Helen::Core::Agent;
+use Syntax::Keyword::Try;
+use Data::Dumper;
 
 if (@ARGV != 2) {
   die "usage: $0 email-address service-name\n";
@@ -30,12 +32,17 @@ die "illegal service name $service_name\n" unless $service_name =~ /^[A-Za-z0-9_
 die "can't load service $service_name\n" unless load_class("Helen::Service::$service_name");
 
 my $identity = Helen::Core::Agent->new($email_address);
-my $service = eval "Helen::Service::$service_name->new(\$identity);";
-$service->authorize_helen(sub {
-			   my($url) = shift;
-			   print "URL: $url\n";
-			   print "Please go to the above url (or otherwise follow instructions) and enter the returned code: ";
-			   my $code = <>;
-			   chomp $code;
-			   return $code;
-			 });
+my $service = eval "Helen::Service::$service_name->new(\$identity);" || die "$!";
+
+try {
+  $service->authorize_helen(sub {
+			      my($url) = shift;
+			      print "URL: $url\n";
+			      print "Please go to the above url (or otherwise follow instructions) and enter the returned code: ";
+			      my $code = <>;
+			      chomp $code;
+			      return $code;
+			    });
+} catch {
+  print Dumper $@;
+}

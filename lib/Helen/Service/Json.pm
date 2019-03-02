@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Eudaemonia Inc
+# Copyright (C) 2018, 2019  Eudaemonia Inc
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,10 +17,11 @@ package Helen::Service::Json;
 use strict;
 use warnings;
 use version 0.77;
-our $VERSION = 'v0.0.3';
+our $VERSION = 'v0.0.4';
 
 use Moose;
 use namespace::autoclean;
+use Helen;
 use JSON::API;
 use Data::Dumper;
 use parent 'Helen::Service';
@@ -75,8 +76,8 @@ sub get {
     }
   
     $result = $self->{api}->get($name, \%params, $self->authorization_headers);
-    # ~~~ error handling
-    die $self->{api}->errstr unless $self->{api}->was_success;
+
+    RuntimeError->throw({message => $self->{api}->errstr, context => $self}) unless $self->{api}->was_success;
     $accumulated_result = $self->combine_results($accumulated_result, $result);
     $count++;
   } while ($self->more_results($result));

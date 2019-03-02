@@ -14,32 +14,20 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-package Helen::Service::Mint;
+package Helen::Exception::Runtime;
 use strict;
 use warnings;
-use version 0.77;
-our $VERSION = 'v0.0.4';
-
+use version 0.77; our $VERSION = version->declare('v0.0.4');
 use Moose;
 use namespace::autoclean;
 use Carp::Assert;
-use parent 'Helen::Service';
-
-has 'subject' => (is => 'rw', isa => 'Object', handles => [qw(name password)]);
 
 around 'BUILDARGS' => sub {
   my $orig = shift;
   my $class = shift;
-  return $class->$orig({map {$_ => shift } qw(subject)});
+  return $class->$orig({map {$_ => shift } qw()});
 };
-
-sub authorize_helen {
-  my($self, $code_sub) = @_;
-  $self->subject->password->{$self} = &$code_sub('Enter your mint.com password:');
-  return;
-}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
 1;
-__DATA__
