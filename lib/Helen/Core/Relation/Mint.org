@@ -20,23 +20,33 @@
   use strict;
   use warnings;
   use version 0.77;
-  our $VERSION = "v0.0.3";
+  our $VERSION = "v0.0.4";
 
   use Moose;
   use Inline 'Python';
   use namespace::autoclean;
   use Carp::Assert;
+  use Helen::Service::Mint;
   use parent 'Helen::Core::Relation';
+  use Data::Dumper;
+
+  has 'mint' => (is => 'rw', isa => 'Object');
 
   around 'BUILDARGS' => sub {
     my $orig = shift;
     my $class = shift;
-    return $class->$orig({map {$_ => shift } qw()});
+    my $subject = new Helen::Service::Mint(shift);
+    return $class->$orig({subject => $subject, map {$_ => shift } qw()});
   };
 
   sub BUILD {
-    my $x = immanentize();
+    my $self = shift;
+    # ~~~ we need to pass something for mfa_input_callback and session_path in that order
+    $self->mint(Helen::Core::Relation::Mint::Mint->new($self->subject->name, $self->subject->password,
+                                                       'sms', undef, 'True', undef));
+    # mint.get_transactions_csv()
   }
+
   no Moose;
   __PACKAGE__->meta->make_immutable;
   1;
@@ -46,12 +56,12 @@
 #+END_SRC
 #+NAME: python
 #+BEGIN_SRC python
-    import mintapi
+  from mintapi import Mint
 
-    # ~~~ we need to create something to pass for session_path rather than use the default to store it
-    def immanentize():
-        mint = mintapi.Mint('hermit@acm.org', '!j.%SqI?v.;7', mfa_method='sms', headless=True, 
-                            mfa_input_callback=None)
-        print mint.get_transactions_csv()
+  # ~~~ we need to create something to pass for session_path rather than use the default to store it
+  # def immanentize():
+  #     mint = mintapi.Mint('hermit@acm.org', '!j.%SqI?v.;7', mfa_method='sms', headless=True, 
+  #                         mfa_input_callback=None)
+  #     print mint.get_transactions_csv()
 
 #+END_SRC

@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Eudaemonia Inc
+# Copyright (C) 2018, 2019  Eudaemonia Inc
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@ package Helen::Core::Agent;
 use strict;
 use warnings;
 use version 0.77;
-our $VERSION = 'v0.0.3';
+our $VERSION = 'v0.0.4';
 
 use Moose;
 use namespace::autoclean;
@@ -37,14 +37,24 @@ has 'code' => (
   
 has 'keyring' => (
 		  is => 'rw',
-		  isa => 'Helen::Core::Relation::Secret::Keyring',
-		  handles => [qw(bearer_token client_id client_secret)],
+		  isa => 'Helen::Core::Relation::Secret::Keyring'
 		 );
 
-has 'bearer_token' => (
-		       is => 'rw',
-		       isa => 'HashRef'
-		      );
+sub has_secret {
+  my($name) = @_;
+  has($name, is => 'rw', traits => ['Hash'], lazy => 1,
+      default => sub {
+	my $self = shift;
+	my %hash;
+	tie %hash, 'Helen::Core::Relation::Secret::Keyring::Tie::Hash', $self->{keyring}, $name;
+	return \%hash;
+      });
+}
+
+has_secret 'bearer_token';
+has_secret 'client_secret';
+has_secret 'code';
+has_secret 'password';
 
 around 'BUILDARGS' => sub {
   my $orig = shift;
@@ -54,16 +64,7 @@ around 'BUILDARGS' => sub {
 
 sub BUILD {
   my $self = shift;
-  my $keyring = Helen::Core::Relation::Secret::Keyring->new($self);
-  $self->keyring($keyring);
-
-  my %hash;
-  tie %hash, 'Helen::Core::Relation::Secret::Keyring::Tie::Hash', $keyring, "code";
-  $self->code(\%hash);
-
-  my %otherhash;
-  tie %otherhash, 'Helen::Core::Relation::Secret::Keyring::Tie::Hash', $keyring, $self->name;
-  $self->bearer_token(\%otherhash);
+  $self->keyring(Helen::Core::Relation::Secret::Keyring->new);
   return;
 }
 

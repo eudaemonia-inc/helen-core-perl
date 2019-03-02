@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Eudaemonia Inc
+# Copyright (C) 2018, 2019  Eudaemonia Inc
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,30 +17,42 @@ package Helen::Service::GoogleSheets;
 use strict;
 use warnings;
 use version 0.77;
-our $VERSION = 'v0.0.3';
+our $VERSION = 'v0.0.4';
 
 use Moose;
 use namespace::autoclean;
-use Helen::Service::Oauth;
+use Helen::Service::Google;
 use parent 'Helen::Service::Json';
+use Carp::Assert;
 
 use constant name => 'GoogleSheets';
+
+has 'subject' => (is => 'rw', isa => 'Object', handles => [qw(bearer_token client_secret)]);
 
 around 'BUILDARGS' => sub {
   my $orig = shift;
   my $class = shift;
-  my $subject = Helen::Service::Oauth->new('Google', 'https://www.eudaemonia.org/helen/auth/',
-					   'https://www.googleapis.com/auth/spreadsheets.readonly', shift);
-  return $class->$orig(subject => $subject, uri => 'https://sheets.googleapis.com/v4');
+  return $class->$orig(subject => shift,
+		       uri => 'https://sheets.googleapis.com/v4');
 };
   
+sub BUILD {
+  my $self = shift;
+  $self->subject(Helen::Service::Google->new($self->subject, $self));
+  return;
+}
+
 sub authorization_headers {
   my $self = shift;
+  assert($self);
+  assert($self->subject);
   return { Authorization => "Bearer ".$self->subject->bearer_token->{$self} };
 }
 
 sub authorize_helen {
   my($self, $code_sub) = @_;
+  assert($self);
+  assert($self->subject);
   $self->subject->authorize_helen($code_sub);
   return;
 }

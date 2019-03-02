@@ -16,7 +16,7 @@
 use strict;
 use warnings;
 use version 0.77;
-our $VERSION = 'v0.0.3';
+our $VERSION = 'v0.0.4';
 
 package Helen::Core::Relation::GoogleSheets::Sheet;
 use Moose;
