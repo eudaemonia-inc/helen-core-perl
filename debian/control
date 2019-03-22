@@ -2,7 +2,14 @@ Source: helen-core-perl
 Section: libs
 Priority: optional
 Maintainer: Mark Buda <hermit@acm.org>
-Build-Depends: debhelper (>= 10)
+Build-Depends: dbus, debhelper (>= 10), doxygen, gnome-keyring,
+ graphviz, libcarp-assert-perl, libdata-compare-perl,
+ libdoxygen-filter-perl, libexporter-easy-perl, libexporter-tiny-perl,
+ libinline-perl, libinline-python-perl, libjson-api-perl,
+ libjson-maybexs-perl, libjson-path-perl, liblwp-authen-oauth2-perl,
+ liblv-perl, libmoose-perl, libnamespace-autoclean-perl,
+ libpasswd-keyring-gnome-perl, libreadonly-perl,
+ libsyntax-keyword-try-perl, libthrowable-perl, org-babel-tangle
 Standards-Version: 4.1.2
 #Homepage: <insert the upstream URL, if relevant>
 Vcs-Git: https://github.com/eudaemonia-inc/helen-core-perl.git
