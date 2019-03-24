@@ -16,7 +16,7 @@
 use strict;
 use warnings;
 use version 0.77;
-our $VERSION = 'v0.0.4';
+our $VERSION = 'v0.0.5';
 
 use Org::Parser;
 use TryCatch;

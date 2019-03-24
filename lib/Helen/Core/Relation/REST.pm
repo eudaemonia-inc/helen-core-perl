@@ -17,7 +17,7 @@ package Helen::Core::Relation::REST;
 use strict;
 use warnings;
 use version 0.77;
-our $VERSION = 'v0.0.4';
+our $VERSION = 'v0.0.5';
 use Moose;
 use namespace::autoclean;
 use parent 'Helen::Core::Relation';

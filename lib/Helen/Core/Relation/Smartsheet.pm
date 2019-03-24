@@ -1,4 +1,4 @@
-# Copyright (C) 2018  Eudaemonia Inc
+# Copyright (C) 2018, 2019  Eudaemonia Inc
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@ package Helen::Core::Relation::Smartsheet;
 use strict;
 use warnings;
 use version 0.77;
-our $VERSION = 'v0.0.4';
+our $VERSION = 'v0.0.5';
 
 use Moose;
 use namespace::autoclean;
