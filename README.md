@@ -28,7 +28,5 @@ I need to start documenting what the actual interface is to the Perl modules.
 I need a bug tracking system and the first bug is to update the copyright notices.
 
 These authorizations need to be in the unlocked GNOME keyring for the tests to pass:
-mbuda@cisco.com Smartsheet
-hermit@acm.org Google
 hermit@acm.org GoogleSheets
 
