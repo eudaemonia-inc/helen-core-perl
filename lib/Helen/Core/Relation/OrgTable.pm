@@ -82,7 +82,7 @@ sub BUILD {
       	$tuple[$positions{(@{$self->arguments}, @{$self->results})[$_]}]
       } (0..$#tuple);
       foreach my $index (0..$#tmp) {
-	$self->extension->{$tuple[$positions{$self->arguments->[0]}]}{(@{$self->arguments}, @{$self->results})[$index]} = $tmp[$index];
+	$self->extension->{$tuple[$positions{$self->arguments->[0]}]}{(@{$self->arguments}, @{$self->results})[$index]} = $tmp[$index] if $tmp[$index] ne '';
       }
     }
   }
